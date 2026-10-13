@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GadgetHub | NoSQL MongoDB Gadget Catalog</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Pinterest Aesthetic Background */
+    body {
+      background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                  linear-gradient(rgba(248, 250, 252, 0.88), rgba(241, 245, 249, 0.92)),
+                  url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1920&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    /* 3D Glassmorphism Card Style */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .glass-card:hover {
+      transform: translateY(-8px) scale(1.015);
+      box-shadow: 0 25px 40px -10px rgba(16, 185, 129, 0.22), 0 12px 20px -8px rgba(0, 0, 0, 0.06);
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    /* 3D Stat Cards */
+    .stat-3d {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .stat-3d:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 20px 35px -8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 3D Button Shadows */
+    .btn-3d {
+      box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.38);
+      transition: all 0.2s ease;
+    }
+    .btn-3d:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.5);
+    }
+    .btn-3d:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.3);
+    }
+
+    .star-rating i {
+      cursor: pointer;
+      transition: color 0.15s ease-in-out;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+
+  <!-- ================= AUTH GATE SCREEN (INITIAL ENTRY GATEWAY) ================= -->
+  <!-- Matches dark navy theme with cyan-blue gradient button from user reference -->
+  <div id="authGateScreen" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 transition-all duration-300" style="background: radial-gradient(ellipse at 50% 35%, #18223c 0%, #0e1424 60%, #080c16 100%);">
+    
+    <div class="w-full max-w-[430px] bg-[#1a2237] border border-[#2b3652]/70 rounded-[28px] p-8 sm:p-10 shadow-2xl shadow-black/70 relative">
+      
+      <!-- GATE LOGIN VIEW -->
+      <div id="gateLoginSection">
+        <div class="text-center mb-8">
+          <h2 class="text-3xl font-extrabold text-white tracking-tight">GadgetHub</h2>
+          <p class="text-slate-400 text-xs sm:text-sm mt-2 font-medium">Sign in to continue to your store</p>
+        </div>
+
+        <form id="gateLoginForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Email</label>
+            <input 
+              type="email" 
+              id="gateLoginEmail" 
+              required 
+              placeholder="Enter Email" 
+              class="w-full px-4 py-3.5 bg-[#283149] hover:bg-[#2d3752] focus:bg-[#2d3752] text-white placeholder-slate-400 text-sm rounded-xl border border-slate-700/50 focus:border-[#00b4d8] focus:ring-2 focus:ring-[#00b4d8]/25 focus:outline-none transition"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Password</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="gateLoginPassword" 
+                required 
+                placeholder="Enter Password" 
+                class="w-full px-4 py-3.5 pr-10 bg-[#283149] hover:bg-[#2d3752] focus:bg-[#2d3752] text-white placeholder-slate-400 text-sm rounded-xl border border-slate-700/50 focus:border-[#00b4d8] focus:ring-2 focus:ring-[#00b4d8]/25 focus:outline-none transition"
+              >
+              <button 
+                type="button" 
+                onclick="toggleGatePasswordVisibility('gateLoginPassword', this)" 
+                class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200 text-sm"
+              >
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            id="gateLoginSubmitBtn"
+            class="w-full py-3.5 px-4 mt-2 text-sm sm:text-base font-bold text-white rounded-xl bg-gradient-to-r from-[#00b4d8] to-[#0077b6] hover:from-[#00c2e8] hover:to-[#0088ce] shadow-lg shadow-cyan-500/25 active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Login</span>
+          </button>
+
+          <div class="text-center pt-2">
+            <p class="text-slate-400 text-xs sm:text-sm">
+              Don't have an account? 
+              <button type="button" onclick="switchGateAuth('register')" class="text-[#00b4d8] font-bold hover:underline cursor-pointer ml-1">Register</button>
+            </p>
+          </div>
+
+          <!-- Quick Demo credentials & Guest option -->
+          <div class="pt-4 mt-4 border-t border-slate-700/50 flex flex-col items-center gap-2.5 text-xs">
+            <button 
+              type="button" 
+              onclick="fillGateDemoCredentials()" 
+              class="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1.5 transition"
+            >
+              <i class="fa-solid fa-key text-[11px]"></i>
+              <span>Use Demo Account (priya@gadgethub.com)</span>
+            </button>
+            <button 
+              type="button" 
+              onclick="continueAsGuest()" 
+              class="text-slate-400 hover:text-slate-200 transition"
+            >
+              Explore Catalog as Guest →
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- GATE REGISTER VIEW -->
+      <div id="gateRegisterSection" class="hidden">
+        <div class="text-center mb-8">
+          <h2 class="text-3xl font-extrabold text-white tracking-tight">GadgetHub</h2>
+          <p class="text-slate-400 text-xs sm:text-sm mt-2 font-medium">Create your account</p>
+        </div>
+
+        <form id="gateRegisterForm" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Username</label>
+            <input 
+              type="text" 
+              id="gateRegisterUsername" 
+              required 
+              placeholder="Enter Username" 
+              class="w-full px-4 py-3.5 bg-[#283149] hover:bg-[#2d3752] focus:bg-[#2d3752] text-white placeholder-slate-400 text-sm rounded-xl border border-slate-700/50 focus:border-[#00b4d8] focus:ring-2 focus:ring-[#00b4d8]/25 focus:outline-none transition"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Email</label>
+            <input 
+              type="email" 
+              id="gateRegisterEmail" 
+              required 
+              placeholder="Enter Email" 
+              class="w-full px-4 py-3.5 bg-[#283149] hover:bg-[#2d3752] focus:bg-[#2d3752] text-white placeholder-slate-400 text-sm rounded-xl border border-slate-700/50 focus:border-[#00b4d8] focus:ring-2 focus:ring-[#00b4d8]/25 focus:outline-none transition"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Password</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="gateRegisterPassword" 
+                required 
+                minlength="6"
+                placeholder="Enter Password" 
+                class="w-full px-4 py-3.5 pr-10 bg-[#283149] hover:bg-[#2d3752] focus:bg-[#2d3752] text-white placeholder-slate-400 text-sm rounded-xl border border-slate-700/50 focus:border-[#00b4d8] focus:ring-2 focus:ring-[#00b4d8]/25 focus:outline-none transition"
+              >
+              <button 
+                type="button" 
+                onclick="toggleGatePasswordVisibility('gateRegisterPassword', this)" 
+                class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-200 text-sm"
+              >
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            id="gateRegisterSubmitBtn"
+            class="w-full py-3.5 px-4 mt-2 text-sm sm:text-base font-bold text-white rounded-xl bg-gradient-to-r from-[#00b4d8] to-[#0077b6] hover:from-[#00c2e8] hover:to-[#0088ce] shadow-lg shadow-cyan-500/25 active:scale-[0.98] transition cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Register</span>
+          </button>
+
+          <div class="text-center pt-2">
+            <p class="text-slate-400 text-xs sm:text-sm">
+              Already have an account? 
+              <button type="button" onclick="switchGateAuth('login')" class="text-[#00b4d8] font-bold hover:underline cursor-pointer ml-1">Login</button>
+            </p>
+          </div>
+
+          <div class="pt-4 mt-4 border-t border-slate-700/50 flex flex-col items-center gap-2 text-xs">
+            <button 
+              type="button" 
+              onclick="continueAsGuest()" 
+              class="text-slate-400 hover:text-slate-200 transition"
+            >
+              Explore Catalog as Guest →
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP SCREEN (FULL GADGET STORE) ================= -->
+  <div id="mainAppScreen" class="min-h-screen flex flex-col flex-1">
+
+  <!-- Header / Navigation (Frosted Glass) -->
+  <header class="bg-white/80 backdrop-blur-xl border-b border-white/40 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Sidebar Toggle -->
+        <div class="flex items-center space-x-3">
+          <button 
+            id="openSidebarBtn" 
+            class="p-2 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-100/80 transition" 
+            title="Open Sidebar / Language Menu"
+          >
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+            <i class="fa-solid fa-leaf text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              GadgetHub
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                MongoDB NoSQL
+              </span>
+            </h1>
+            <p id="i18n-brandSubtitle" class="text-xs text-slate-500 hidden sm:block">Dynamic Document-Driven E-Commerce Catalog</p>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-md mx-4 hidden md:block">
+          <div class="relative">
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Search gadgets by name, brand, or feature..." 
+              class="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 border border-transparent rounded-lg focus:bg-white focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
+            >
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <!-- Lingual / Language Switcher Dropdown in Navbar -->
+          <div class="relative">
+            <select 
+              id="navbarLangSelect" 
+              class="bg-white/95 border border-slate-200 text-xs font-bold text-slate-700 rounded-xl px-2.5 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-sm cursor-pointer hover:border-emerald-500 transition"
+              title="Change Language / भाषा बदलें / ভাষা পরিবর্তন করুন"
+            >
+              <option value="en">🇬🇧 English</option>
+              <option value="hi">🇮🇳 हिंदी (Hindi)</option>
+              <option value="bn">🇮🇳 বাংলা (Bengali)</option>
+            </select>
+          </div>
+
+          <!-- Cart Button with Floating Badge -->
+          <button 
+            id="openCartBtn"
+            class="relative inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-800 bg-white/90 hover:bg-white border border-slate-200/90 rounded-xl shadow-sm hover:shadow transition active:scale-95"
+            title="Shopping Cart"
+          >
+            <i class="fa-solid fa-cart-shopping text-emerald-600"></i>
+            <span id="i18n-navCart" class="hidden sm:inline">Cart</span>
+            <span id="cartBadge" class="ml-1 px-1.5 py-0.2 rounded-full bg-emerald-600 text-white text-[10px] font-black">0</span>
+          </button>
+
+          <!-- Account / Sign In / Profile Buttons -->
+          <div id="authNavContainer" class="flex items-center">
+            <button 
+              id="openAuthModalBtn"
+              class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-800 bg-white/90 hover:bg-white border border-slate-200/90 rounded-xl shadow-sm hover:shadow transition active:scale-95"
+              title="Sign In or Register"
+            >
+              <i class="fa-regular fa-user text-emerald-600"></i>
+              <span id="i18n-navAuth">Sign In</span>
+            </button>
+
+            <button 
+              id="openProfileBtn"
+              class="hidden items-center gap-2 px-2.5 py-1.5 text-xs font-bold text-slate-800 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-300 rounded-xl shadow-sm transition active:scale-95"
+              title="My Account & Orders"
+            >
+              <div id="navUserAvatar" class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[11px] font-black shadow-sm">U</div>
+              <span id="navUserName" class="max-w-[70px] sm:max-w-[110px] truncate text-slate-800">User</span>
+            </button>
+          </div>
+
+          <!-- Add Gadget Button -->
+          <button 
+            id="openAddModalBtn"
+            class="btn-3d inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl active:scale-95 transition"
+          >
+            <i class="fa-solid fa-plus"></i>
+            <span id="i18n-navAddGadget">Add Gadget</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar Navigation & Lingual Drawer -->
+  <div id="sidebarDrawerBackdrop" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity duration-300">
+    <div id="sidebarDrawerPanel" class="fixed top-0 left-0 bottom-0 w-full max-w-xs bg-white shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out z-50">
+      
+      <!-- Sidebar Header -->
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/90">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-slate-900">GadgetHub</h3>
+            <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.2 rounded">MongoDB Store</span>
+          </div>
+        </div>
+        <button id="closeSidebarBtn" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Sidebar Body -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+        
+        <!-- User Account Card in Sidebar -->
+        <div id="sidebarUserSection" class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
+          <div id="sidebarGuestBlock">
+            <p id="i18n-sidebarWelcomeGuest" class="text-xs font-bold text-slate-800 mb-1">Welcome to GadgetHub!</p>
+            <p id="i18n-sidebarGuestSub" class="text-[11px] text-slate-500 mb-2.5">Sign in to track orders and manage your NoSQL profile.</p>
+            <button onclick="closeSidebar(); showGate('login');" class="btn-3d w-full py-2 px-3 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center gap-1.5">
+              <i class="fa-regular fa-user"></i>
+              <span id="i18n-sidebarSignIn">Sign In / Register</span>
+            </button>
+          </div>
+          <div id="sidebarUserBlock" class="hidden space-y-2.5">
+            <div class="flex items-center gap-2.5">
+              <div id="sidebarUserAvatar" class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center text-sm font-black shadow-sm">U</div>
+              <div class="min-w-0 flex-1">
+                <h4 id="sidebarUserName" class="text-xs font-black text-slate-900 truncate">User Name</h4>
+                <p id="sidebarUserEmail" class="text-[10px] text-slate-400 truncate">user@example.com</p>
+              </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+              <button onclick="closeSidebar(); openProfileModal();" class="flex-1 py-1.5 px-2 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition">
+                <i class="fa-solid fa-id-card text-emerald-600 mr-1"></i> <span id="i18n-sidebarMyProfile">Profile</span>
+              </button>
+              <button onclick="handleLogout()" class="py-1.5 px-2.5 text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition" title="Log Out">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lingual / Language Selection (Sarvam / Indian Languages) -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span id="i18n-sidebarLangTitle" class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-language text-emerald-600 text-sm"></i>
+              <span>Language (भाषा / ভাষা)</span>
+            </span>
+          </div>
+          <p id="i18n-sidebarLangSubtitle" class="text-[11px] text-slate-400 mb-2.5">Choose your preferred language:</p>
+          <div class="space-y-1.5">
+            <button onclick="setLanguage('en')" class="lang-option-btn w-full px-3 py-2.5 rounded-xl border border-slate-200 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition" data-lang="en">
+              <span class="flex items-center gap-2">🇬🇧 English</span>
+              <span class="lang-check text-emerald-600"><i class="fa-solid fa-circle-check"></i></span>
+            </button>
+            <button onclick="setLanguage('hi')" class="lang-option-btn w-full px-3 py-2.5 rounded-xl border border-slate-200 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition" data-lang="hi">
+              <span class="flex items-center gap-2">🇮🇳 हिंदी (Hindi)</span>
+              <span class="lang-check text-emerald-600 hidden"><i class="fa-solid fa-circle-check"></i></span>
+            </button>
+            <button onclick="setLanguage('bn')" class="lang-option-btn w-full px-3 py-2.5 rounded-xl border border-slate-200 text-left text-xs font-bold flex items-center justify-between hover:bg-slate-50 transition" data-lang="bn">
+              <span class="flex items-center gap-2">🇮🇳 বাংলা (Bengali)</span>
+              <span class="lang-check text-emerald-600 hidden"><i class="fa-solid fa-circle-check"></i></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Categories -->
+        <div class="border-t border-slate-200 pt-4">
+          <span id="i18n-sidebarCategories" class="text-xs font-black text-slate-700 uppercase tracking-wider block mb-2.5">Categories</span>
+          <div class="space-y-1 text-xs font-semibold text-slate-600">
+            <a href="#" onclick="selectCategory('All'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">✨ All Gadgets</a>
+            <a href="#" onclick="selectCategory('Smartphones'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">📱 Smartphones</a>
+            <a href="#" onclick="selectCategory('Laptops'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">💻 Laptops</a>
+            <a href="#" onclick="selectCategory('Audio'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">🎧 Audio</a>
+            <a href="#" onclick="selectCategory('Wearables'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">⌚ Wearables</a>
+            <a href="#" onclick="selectCategory('Gaming'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">🎮 Gaming</a>
+            <a href="#" onclick="selectCategory('Accessories'); closeSidebar(); return false;" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 transition">🔌 Accessories</a>
+          </div>
+        </div>
+
+        <!-- System Architecture -->
+        <div class="border-t border-slate-200 pt-4">
+          <span class="text-xs font-black text-slate-700 uppercase tracking-wider block mb-2">Architecture</span>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
+            <p><strong>DB:</strong> MongoDB (NoSQL)</p>
+            <p><strong>Model:</strong> Embedded Reviews</p>
+            <p><strong>Analytics:</strong> Aggregation Pipeline</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Search Bar -->
+  <div class="md:hidden px-4 pt-3 pb-1 bg-white border-b border-slate-200">
+    <div class="relative">
+      <input 
+        type="text" 
+        id="mobileSearchInput" 
+        placeholder="Search gadgets..." 
+        class="w-full pl-10 pr-4 py-2 text-sm bg-slate-100 border border-transparent rounded-lg focus:bg-white focus:border-emerald-500 focus:outline-none transition"
+      >
+      <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+
+    <!-- Live 3D Stats Cards (Backend database card removed) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+      
+      <div class="stat-3d p-5 rounded-2xl flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/25">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <div>
+          <p id="i18n-statTotalGadgets" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Gadgets</p>
+          <h3 id="statTotalProducts" class="text-3xl font-black text-slate-900 tracking-tight">-</h3>
+        </div>
+      </div>
+
+      <div class="stat-3d p-5 rounded-2xl flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-amber-500/25">
+          <i class="fa-solid fa-comments"></i>
+        </div>
+        <div>
+          <p id="i18n-statEmbeddedReviews" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Embedded Reviews</p>
+          <h3 id="statTotalReviews" class="text-3xl font-black text-slate-900 tracking-tight">-</h3>
+        </div>
+      </div>
+
+      <div class="stat-3d p-5 rounded-2xl flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-400 text-white flex items-center justify-center text-2xl shadow-lg shadow-blue-500/25">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div>
+          <p id="i18n-statCategories" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categories</p>
+          <h3 id="statTotalCategories" class="text-3xl font-black text-slate-900 tracking-tight">-</h3>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Filters & Sorting Bar (Glassmorphism 3D) -->
+    <div class="glass-card p-4 rounded-2xl mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      
+      <!-- Category Filter Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar" id="categoryPills">
+        <button data-category="All" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-emerald-600 text-white whitespace-nowrap shadow-sm">
+          <span class="cat-text" data-cat="All">All Gadgets</span>
+        </button>
+        <button data-category="Smartphones" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap transition">
+          <span class="cat-text" data-cat="Smartphones">Smartphones</span>
+        </button>
+        <button data-category="Laptops" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap transition">
+          <span class="cat-text" data-cat="Laptops">Laptops</span>
+        </button>
+        <button data-category="Audio" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap transition">
+          <span class="cat-text" data-cat="Audio">Audio</span>
+        </button>
+        <button data-category="Wearables" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap transition">
+          <span class="cat-text" data-cat="Wearables">Wearables</span>
+        </button>
+        <button data-category="Gaming" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap transition">
+          <span class="cat-text" data-cat="Gaming">Gaming</span>
+        </button>
+        <button data-category="Accessories" class="cat-pill px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 whitespace-nowrap transition">
+          <span class="cat-text" data-cat="Accessories">Accessories</span>
+        </button>
+      </div>
+
+      <!-- Secondary Filter Controls: Price Range, Stock, Sorting -->
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Price Range Filter -->
+        <div class="flex items-center gap-1.5">
+          <label for="priceRangeSelect" id="i18n-filterPriceLabel" class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Price:</label>
+          <select id="priceRangeSelect" class="bg-white/90 border border-slate-200 text-slate-700 text-xs rounded-xl px-2.5 py-1.5 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-sm">
+            <option value="all">All Prices</option>
+            <option value="under30k">Under ₹30,000</option>
+            <option value="30k-100k">₹30,000 - ₹1,00,000</option>
+            <option value="above100k">Above ₹1,00,000</option>
+          </select>
+        </div>
+
+        <!-- In-Stock Filter -->
+        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer select-none px-2.5 py-1.5 bg-white/90 rounded-xl border border-slate-200/80 hover:bg-white transition shadow-sm">
+          <input type="checkbox" id="inStockCheckbox" class="rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5">
+          <span id="i18n-filterInStockLabel">In Stock Only</span>
+        </label>
+
+        <!-- Sorting Select -->
+        <div class="flex items-center gap-1.5">
+          <label for="sortSelect" id="i18n-filterSortLabel" class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Sort:</label>
+          <select id="sortSelect" class="bg-white/90 border border-slate-200 text-slate-700 text-xs rounded-xl px-2.5 py-1.5 font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-sm">
+            <option value="newest">Latest Added</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+            <option value="rating_desc">Highest Rated ⭐</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Products Grid -->
+    <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Loading skeleton will be injected by JavaScript -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-16 bg-white rounded-2xl border border-slate-200 mt-4">
+      <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fa-solid fa-box-open"></i>
+      </div>
+      <h3 class="text-lg font-bold text-slate-800">No gadgets found</h3>
+      <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-4">Try adjusting your search terms or filters, or add a new gadget to your MongoDB catalog.</p>
+      <button onclick="resetFilters()" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 underline">Reset all filters</button>
+    </div>
+
+  </main>
+
+  <!-- Store Footer -->
+  <footer class="bg-white/70 backdrop-blur-md border-t border-slate-200/80 py-6 text-center text-xs text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">
+          <i class="fa-solid fa-leaf"></i>
+        </div>
+        <span class="font-bold text-slate-700">GadgetHub &copy; 2026</span>
+        <span class="text-slate-400">| Powered by MongoDB NoSQL & Express</span>
+      </div>
+      <div class="flex items-center gap-4 text-slate-500">
+        <span>High-Performance Tech Catalog</span>
+        <span>•</span>
+        <span>Real-time Reviews</span>
+      </div>
+    </div>
+  </footer>
+
+</div> <!-- /mainAppScreen -->
+
+  <!-- ======================== MODALS ======================== -->
+
+  <!-- 1. Amazon-Style Product Detail & Real Internet Reviews Modal -->
+  <div id="detailModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-6xl w-full overflow-hidden my-4 transform transition-all border border-slate-200">
+      
+      <!-- Top Breadcrumb & Close Bar -->
+      <div class="px-6 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+        <div class="text-xs text-slate-500 flex items-center gap-1.5 overflow-hidden">
+          <span class="hover:text-emerald-600 cursor-pointer">Electronics</span>
+          <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
+          <span id="modalBreadcrumbCat" class="hover:text-emerald-600 cursor-pointer">Category</span>
+          <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
+          <span id="modalBreadcrumbBrand" class="font-bold text-slate-800 truncate">Brand</span>
+        </div>
+        <button id="closeDetailModalBtn" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Main Amazon-Style 3-Column Layout -->
+      <div class="p-6 max-h-[82vh] overflow-y-auto custom-scrollbar space-y-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Column 1: Vertical Thumbnails & Hero Image Gallery (lg:col-span-5) -->
+          <div class="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-4">
+            <!-- Vertical Thumbnails Rail -->
+            <div class="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-visible shrink-0" id="modalThumbnailsRail">
+              <button class="w-12 h-12 rounded-xl border-2 border-emerald-500 overflow-hidden shadow-sm shrink-0">
+                <img id="thumb1" src="" class="w-full h-full object-cover">
+              </button>
+              <button class="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden shadow-sm opacity-70 hover:opacity-100 shrink-0">
+                <img id="thumb2" src="" class="w-full h-full object-cover">
+              </button>
+              <button class="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden shadow-sm opacity-70 hover:opacity-100 shrink-0">
+                <img id="thumb3" src="" class="w-full h-full object-cover">
+              </button>
+              <button class="w-12 h-12 rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-500 text-xs font-bold shrink-0">
+                <i class="fa-solid fa-play"></i>
+              </button>
+            </div>
+
+            <!-- Big Main Product Image with Zoom Look & Badges -->
+            <div class="flex-1 relative rounded-2xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-center min-h-[340px]">
+              <img id="modalProductImage" src="" alt="Product" class="max-h-[380px] w-full object-contain hover:scale-105 transition duration-300">
+              
+              <!-- Floating Heart & Share Icons -->
+              <div class="absolute top-3 right-3 flex flex-col gap-2">
+                <button class="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-slate-600 hover:text-rose-500 hover:bg-white shadow flex items-center justify-center transition">
+                  <i class="fa-regular fa-heart"></i>
+                </button>
+                <button class="w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm text-slate-600 hover:text-emerald-600 hover:bg-white shadow flex items-center justify-center transition">
+                  <i class="fa-solid fa-share-nodes"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Center Details, Pricing & Offers (lg:col-span-4) -->
+          <div class="lg:col-span-4 space-y-4">
+            <div>
+              <a id="modalProductStoreLink" href="#" class="text-xs font-bold text-emerald-700 hover:underline">Visit the Official Store</a>
+              <h2 id="modalProductName" class="text-lg font-black text-slate-900 leading-snug mt-1">Product Title</h2>
+            </div>
+
+            <!-- Ratings Bar -->
+            <div class="flex items-center gap-2 text-xs">
+              <span id="modalAvgRatingScore" class="font-bold text-slate-800">4.5</span>
+              <div id="modalAvgRatingStars" class="text-amber-500 flex items-center gap-0.5"></div>
+              <span id="modalReviewCountLink" class="text-emerald-700 hover:underline cursor-pointer font-semibold">(808 ratings)</span>
+            </div>
+
+            <div class="text-[11px] text-slate-500">
+              <span class="font-bold text-slate-700">5K+ bought</span> in past month
+            </div>
+
+            <!-- Deal / Price Section -->
+            <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-2">
+              <div class="flex items-baseline gap-2.5">
+                <span class="text-rose-600 font-extrabold text-2xl">-36%</span>
+                <span id="modalProductPrice" class="text-3xl font-black text-slate-900">₹0</span>
+              </div>
+              <div class="text-xs text-slate-500">
+                <span id="i18n-modalMrpLabel">M.R.P.: </span>
+                <span id="modalProductMRP" class="line-through text-slate-400 font-semibold">₹0</span>
+                <span id="i18n-inclusiveTaxes" class="block text-[11px] text-slate-400 mt-0.5">Inclusive of all taxes</span>
+              </div>
+              <p id="i18n-modalEmiText" class="text-[11px] text-slate-600 pt-1 border-t border-slate-200">
+                <strong>EMI</strong> starts at ₹1,125/month. <span class="text-emerald-700 font-bold hover:underline cursor-pointer">No Cost EMI available</span>
+              </p>
+            </div>
+
+            <!-- 3 Offers Tiles -->
+            <div>
+              <span class="text-xs font-bold text-slate-700 uppercase flex items-center gap-1.5 mb-2">
+                <i class="fa-solid fa-tags text-emerald-600"></i> <span id="i18n-offersTitle">Offers</span>
+              </span>
+              <div class="grid grid-cols-3 gap-2">
+                <div class="p-2.5 bg-white border border-slate-200 rounded-xl text-left shadow-sm">
+                  <span id="i18n-offerCashbackTitle" class="text-[10px] font-bold text-slate-800 block">Cashback</span>
+                  <p id="i18n-offerCashbackDesc" class="text-[10px] text-slate-500 leading-tight mt-1">Upto ₹959 on Pay Balance</p>
+                </div>
+                <div class="p-2.5 bg-white border border-slate-200 rounded-xl text-left shadow-sm">
+                  <span id="i18n-offerEmiTitle" class="text-[10px] font-bold text-slate-800 block">No Cost EMI</span>
+                  <p id="i18n-offerEmiDesc" class="text-[10px] text-slate-500 leading-tight mt-1">Save upto ₹1,786 on cards</p>
+                </div>
+                <div class="p-2.5 bg-white border border-slate-200 rounded-xl text-left shadow-sm">
+                  <span id="i18n-offerPartnerTitle" class="text-[10px] font-bold text-slate-800 block">Partner Offers</span>
+                  <p id="i18n-offerPartnerDesc" class="text-[10px] text-slate-500 leading-tight mt-1">GST invoice & save 18%</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overview -->
+            <div>
+              <h4 id="i18n-modalOverview" class="text-xs uppercase font-extrabold text-slate-700 tracking-wider mb-1">Product Overview</h4>
+              <p id="modalProductDesc" class="text-xs text-slate-600 leading-relaxed"></p>
+            </div>
+
+            <!-- Key Specifications Table -->
+            <div>
+              <h4 id="i18n-modalSpecs" class="text-xs uppercase font-extrabold text-slate-700 tracking-wider mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-sliders text-emerald-600"></i>
+                <span>Key Specifications</span>
+              </h4>
+              <div id="modalProductSpecs" class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs divide-y divide-slate-200/70">
+                <!-- Injected via JavaScript -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column 3: Amazon Right Buy Box (lg:col-span-3) -->
+          <div class="lg:col-span-3">
+            <div class="p-4 bg-white rounded-2xl border-2 border-slate-200 shadow-sm space-y-4 sticky top-4">
+              
+              <!-- Prime Badge -->
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-blue-600 font-black italic text-base">prime</span>
+                <span id="i18n-primeFreeDelivery" class="text-[10px] font-bold text-slate-500">FREE 1-Day Delivery</span>
+              </div>
+
+              <!-- Exchange Options -->
+              <div class="space-y-2 text-xs">
+                <label class="flex items-start gap-2 p-2 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50">
+                  <input type="radio" name="exchangeOption" class="mt-0.5 text-emerald-600">
+                  <div>
+                    <span id="i18n-withExchange" class="font-bold text-slate-800 block">With Exchange</span>
+                    <span id="i18n-exchangeOff" class="text-[10px] text-emerald-700 font-semibold">Up to ₹30,050 off</span>
+                  </div>
+                </label>
+                <label class="flex items-start gap-2 p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50/30 cursor-pointer">
+                  <input type="radio" name="exchangeOption" checked class="mt-0.5 text-emerald-600">
+                  <div>
+                    <span id="i18n-withoutExchange" class="font-bold text-slate-800 block">Without Exchange</span>
+                    <span id="buyBoxPrice" class="text-xs font-black text-slate-900">₹0</span>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Delivery details -->
+              <div class="text-xs text-slate-600 space-y-1">
+                <p><strong id="i18n-freeDelivery">FREE delivery</strong> <span id="i18n-deliveryDate" class="text-slate-900 font-bold">Thursday, 15 October</span>.</p>
+                <p id="i18n-serviceFee" class="text-[11px] text-slate-500">+₹199 service fee. Delivery associate will open and verify item.</p>
+                <p id="i18n-buyBoxInStock" class="text-emerald-600 font-black text-sm pt-1">● In stock</p>
+              </div>
+
+              <!-- Buy Box Action Buttons -->
+              <div class="space-y-2 pt-2">
+                <button 
+                  id="modalAddToCartBtn"
+                  class="w-full py-2.5 px-4 text-xs font-extrabold text-slate-900 bg-amber-400 hover:bg-amber-500 active:scale-95 rounded-full shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i class="fa-solid fa-cart-plus"></i>
+                  <span id="i18n-buyBoxAdd">Add to cart</span>
+                </button>
+                <button 
+                  id="modalBuyNowBtn"
+                  class="w-full py-2.5 px-4 text-xs font-extrabold text-slate-950 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-full shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i class="fa-solid fa-bolt"></i>
+                  <span id="i18n-buyBoxBuy">Buy Now</span>
+                </button>
+              </div>
+
+              <!-- Trust / Seller info -->
+              <div class="pt-2 border-t border-slate-100 text-[10px] text-slate-500 space-y-1">
+                <p id="i18n-shipsFrom">Ships from: <strong class="text-slate-700">Amazon</strong></p>
+                <p id="i18n-soldBy">Sold by: <strong class="text-slate-700">Clicktech Retail</strong></p>
+                <p id="i18n-secureTxn">Payment: <strong class="text-slate-700">Secure transaction</strong></p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Full-Width Bottom: Internet Customer Reviews & Feedback Form -->
+        <div class="border-t border-slate-200 pt-8">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 id="i18n-modalCustomerReviewsTitle" class="text-lg font-black text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-comments text-emerald-600"></i>
+                <span>Customer Reviews from the Internet</span>
+              </h3>
+              <p id="i18n-modalCustomerReviewsSubtitle" class="text-xs text-slate-500">Verified buyer ratings from tech forums, Amazon, and community benchmarks.</p>
+            </div>
+            <span id="modalReviewCountBadge" class="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full">3 reviews</span>
+          </div>
+
+          <!-- Add Review Form -->
+          <form id="addReviewForm" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-8 space-y-4">
+            <h5 id="i18n-writeReview" class="text-xs font-black text-slate-800 uppercase tracking-wide">Write a Customer Review</h5>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label id="i18n-yourName" class="block text-xs font-bold text-slate-600 mb-1">Your Name</label>
+                <input type="text" id="reviewAuthor" required placeholder="e.g. Rahul Sharma (Verified Buyer)" class="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              </div>
+              <div>
+                <label id="i18n-ratingLabel" class="block text-xs font-bold text-slate-600 mb-1">Rating</label>
+                <div class="star-rating flex items-center gap-1.5 pt-1 text-slate-300 text-lg" id="starRatingInput">
+                  <i class="fa-solid fa-star" data-val="1"></i>
+                  <i class="fa-solid fa-star" data-val="2"></i>
+                  <i class="fa-solid fa-star" data-val="3"></i>
+                  <i class="fa-solid fa-star" data-val="4"></i>
+                  <i class="fa-solid fa-star text-amber-400" data-val="5"></i>
+                </div>
+                <input type="hidden" id="reviewRatingVal" value="5">
+              </div>
+            </div>
+            <div>
+              <label id="i18n-yourFeedback" class="block text-xs font-bold text-slate-600 mb-1">Your Review & Feedback</label>
+              <textarea id="reviewComment" required rows="3" placeholder="Share your authentic experience with this gadget..." class="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+            </div>
+            <div class="text-right">
+              <button type="submit" id="i18n-submitReviewBtn" class="btn-3d px-5 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl">
+                Submit Review
+              </button>
+            </div>
+          </form>
+
+          <!-- Reviews List from Internet -->
+          <div id="modalReviewsList" class="space-y-4">
+            <!-- Review items injected here -->
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <button id="closeDetailModalFooterBtn" class="px-5 py-2 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-100">
+          Close Product View
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 2. Add / Edit Product Modal (CRUD operations) -->
+  <div id="productFormModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden my-8 transform transition-all">
+      
+      <div class="p-6 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="productFormTitle" class="text-lg font-bold text-slate-900">Add New Gadget</h3>
+        <button id="closeProductFormBtn" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="productForm" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+        <input type="hidden" id="editProductId" value="">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Product Title *</label>
+          <input type="text" id="formName" required placeholder="e.g. Sony WH-1000XM5" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Brand *</label>
+            <input type="text" id="formBrand" required placeholder="e.g. Sony, Apple" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Category *</label>
+            <select id="formCategory" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="Smartphones">Smartphones</option>
+              <option value="Laptops">Laptops</option>
+              <option value="Audio">Audio</option>
+              <option value="Wearables">Wearables</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Accessories">Accessories</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Price (₹ / Rs.) *</label>
+            <input type="number" id="formPrice" required min="0" step="1" placeholder="29990" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Stock Status</label>
+            <select id="formInStock" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="true">In Stock</option>
+              <option value="false">Out of Stock</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Image URL</label>
+          <input type="url" id="formImageUrl" placeholder="https://images.unsplash.com/..." class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          <p class="text-[11px] text-slate-400 mt-1">Leave blank to use a default high-res gadget image.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Description *</label>
+          <textarea id="formDescription" required rows="3" placeholder="Provide product features, highlights, and overview..." class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+        </div>
+
+        <!-- Product Specifications Builder -->
+        <div class="border-t border-slate-200 pt-3">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <span class="text-xs font-bold text-slate-700 uppercase">Product Specifications</span>
+              <p class="text-[11px] text-slate-400">Add custom specifications and features for this gadget.</p>
+            </div>
+            <button type="button" id="addSpecRowBtn" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">
+              <i class="fa-solid fa-plus mr-1"></i>Add Spec
+            </button>
+          </div>
+          <div id="specsContainer" class="space-y-2">
+            <!-- Row items injected here -->
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-3">
+          <button type="button" id="cancelProductFormBtn" class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm">
+            Save Gadget
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- 3. Slide-Out Shopping Cart Drawer -->
+  <div id="cartDrawerBackdrop" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden transition-opacity duration-300">
+    <div id="cartDrawerPanel" class="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+      
+      <!-- Cart Header -->
+      <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-cart-shopping text-emerald-600 text-lg"></i>
+          <h3 id="i18n-cartTitle" class="text-base font-extrabold text-slate-900">Your Shopping Cart</h3>
+          <span id="cartDrawerCountBadge" class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">0 items</span>
+        </div>
+        <button id="closeCartBtn" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Cart Items List -->
+      <div id="cartItemsList" class="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Cart Footer / Checkout -->
+      <div class="p-5 border-t border-slate-200 bg-slate-50/80 space-y-3">
+        <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+          <span id="i18n-cartSubtotalLabel">Subtotal</span>
+          <span id="cartSubtotal" class="text-slate-800 font-bold text-sm">₹0</span>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+          <span id="i18n-cartDeliveryLabel">Standard Delivery</span>
+          <span id="i18n-cartFreeDeliveryBadge" class="text-emerald-600 font-bold uppercase">Free Delivery</span>
+        </div>
+        <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between">
+          <span id="i18n-cartTotalLabel" class="text-sm font-black text-slate-900 uppercase">Total Amount</span>
+          <span id="cartTotal" class="text-2xl font-black text-slate-900">₹0</span>
+        </div>
+        <button 
+          id="checkoutBtn"
+          class="btn-3d w-full py-3 text-sm font-extrabold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center gap-2 shadow-lg"
+        >
+          <i class="fa-solid fa-lock"></i>
+          <span id="i18n-cartCheckoutText">Complete Simulated Checkout</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. User Authentication Modal (Log In / Sign In & Register) -->
+  <div id="authModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden my-6 transform transition-all border border-slate-200">
+      
+      <!-- Auth Header & Tab Switcher -->
+      <div class="p-5 pb-0 bg-gradient-to-r from-emerald-50/80 to-teal-50/80 border-b border-slate-200">
+        <div class="flex items-center justify-between pb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm shadow-md shadow-emerald-500/20">
+              <i class="fa-solid fa-user-lock"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-black text-slate-900">GadgetHub Account</h3>
+              <p class="text-[11px] text-emerald-800 font-semibold">MongoDB NoSQL Identity System</p>
+            </div>
+          </div>
+          <button id="closeAuthModalBtn" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Tabs: Log In vs Sign Up -->
+        <div class="flex border-b border-slate-200">
+          <button 
+            id="tabLoginBtn" 
+            onclick="switchAuthTab('login')" 
+            class="flex-1 py-3 text-xs font-black text-emerald-700 border-b-2 border-emerald-600 transition text-center"
+          >
+            <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i>
+            <span id="i18n-tabSignIn">Sign In</span>
+          </button>
+          <button 
+            id="tabRegisterBtn" 
+            onclick="switchAuthTab('register')" 
+            class="flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-700 transition text-center"
+          >
+            <i class="fa-solid fa-user-plus mr-1"></i>
+            <span id="i18n-tabSignUp">Create Account</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Log In Form -->
+      <form id="loginForm" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input 
+              type="email" 
+              id="loginEmail" 
+              required 
+              placeholder="e.g. priya@gadgethub.com" 
+              class="w-full text-xs pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+            >
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-700">Password</label>
+            <span class="text-[10px] text-emerald-700 font-bold hover:underline cursor-pointer" onclick="fillDemoCredentials()">Use Demo Account</span>
+          </div>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input 
+              type="password" 
+              id="loginPassword" 
+              required 
+              placeholder="••••••••" 
+              class="w-full text-xs pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+            >
+            <button 
+              type="button" 
+              onclick="togglePasswordVisibility('loginPassword', this)" 
+              class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs"
+            >
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          id="loginSubmitBtn"
+          class="btn-3d w-full py-2.5 px-4 text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span id="i18n-loginBtnText">Sign In to GadgetHub</span>
+        </button>
+
+        <p class="text-center text-xs text-slate-500 pt-1">
+          Don't have an account? 
+          <a href="#" onclick="switchAuthTab('register'); return false;" class="text-emerald-700 font-extrabold hover:underline">Register now</a>
+        </p>
+      </form>
+
+      <!-- Tab 2: Sign Up / Register Form -->
+      <form id="registerForm" class="p-6 space-y-3.5 hidden">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+          <div class="relative">
+            <i class="fa-regular fa-user absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input 
+              type="text" 
+              id="registerName" 
+              required 
+              placeholder="e.g. Priya Sen" 
+              class="w-full text-xs pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Email Address *</label>
+          <div class="relative">
+            <i class="fa-regular fa-envelope absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input 
+              type="email" 
+              id="registerEmail" 
+              required 
+              placeholder="e.g. priya@gadgethub.com" 
+              class="w-full text-xs pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+            >
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Phone (Optional)</label>
+            <input 
+              type="tel" 
+              id="registerPhone" 
+              placeholder="+91 98765 43210" 
+              class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Password (6+ chars) *</label>
+            <input 
+              type="password" 
+              id="registerPassword" 
+              required 
+              minlength="6"
+              placeholder="••••••••" 
+              class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Delivery Address</label>
+          <textarea 
+            id="registerAddress" 
+            rows="2" 
+            placeholder="Flat/House, Street, City, State, PIN" 
+            class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+          >Flat 4B, Green Meadows, Bengaluru, Karnataka 560102</textarea>
+        </div>
+
+        <button 
+          type="submit" 
+          id="registerSubmitBtn"
+          class="btn-3d w-full py-2.5 px-4 text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2 cursor-pointer mt-1"
+        >
+          <i class="fa-solid fa-user-plus"></i>
+          <span id="i18n-registerBtnText">Create Free Account</span>
+        </button>
+
+        <p class="text-center text-xs text-slate-500 pt-1">
+          Already registered? 
+          <a href="#" onclick="switchAuthTab('login'); return false;" class="text-emerald-700 font-extrabold hover:underline">Log in here</a>
+        </p>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- 6. User Profile & Order History Modal (NoSQL Dashboard) -->
+  <div id="profileModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden my-6 transform transition-all border border-slate-200">
+      
+      <!-- Profile Header -->
+      <div class="p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white relative">
+        <button id="closeProfileModalBtn" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+
+        <div class="flex items-center gap-4">
+          <div id="profileHeaderAvatar" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center text-2xl font-black shadow-lg shadow-emerald-500/30">
+            P
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 id="profileHeaderName" class="text-xl font-black tracking-tight text-white">Priya Sen</h3>
+              <span id="profileHeaderRole" class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300">
+                Verified Customer
+              </span>
+            </div>
+            <p id="profileHeaderEmail" class="text-xs text-slate-300 mt-0.5">priya@gadgethub.com</p>
+            <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
+              <span><i class="fa-solid fa-database text-emerald-400 mr-1"></i>MongoDB NoSQL Document</span>
+              <span>•</span>
+              <span id="profileMemberSince">Member since 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Tabs -->
+        <div class="flex gap-4 mt-6 border-b border-slate-700/60 text-xs font-bold">
+          <button 
+            id="tabProfileDetailsBtn" 
+            onclick="switchProfileTab('details')" 
+            class="pb-2.5 border-b-2 border-emerald-400 text-white flex items-center gap-1.5 transition"
+          >
+            <i class="fa-solid fa-id-card"></i>
+            <span>Account Details & Address</span>
+          </button>
+          <button 
+            id="tabProfileOrdersBtn" 
+            onclick="switchProfileTab('orders')" 
+            class="pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition"
+          >
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>My Orders (<span id="userOrdersCount">0</span>)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Profile Details & Address Panel -->
+      <div id="profileDetailsPanel" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+        <form id="editProfileForm" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+              <input 
+                type="text" 
+                id="profileInputName" 
+                required 
+                class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Registered Email (Immutable Index)</label>
+              <input 
+                type="email" 
+                id="profileInputEmail" 
+                disabled 
+                class="w-full text-xs px-3 py-2.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl cursor-not-allowed"
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
+              <input 
+                type="tel" 
+                id="profileInputPhone" 
+                placeholder="+91 98765 43210" 
+                class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Change Password (Optional)</label>
+              <input 
+                type="password" 
+                id="profileInputPassword" 
+                placeholder="Leave blank to keep current" 
+                minlength="6"
+                class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Default Shipping Address (Embedded in Orders)</label>
+            <textarea 
+              id="profileInputAddress" 
+              rows="2" 
+              placeholder="Your complete shipping address..." 
+              class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            ></textarea>
+          </div>
+
+          <div class="pt-2 flex justify-end">
+            <button 
+              type="submit" 
+              id="saveProfileBtn"
+              class="btn-3d px-5 py-2.5 text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md active:scale-95 transition flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Save Changes to MongoDB</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tab 2: Orders History Panel -->
+      <div id="profileOrdersPanel" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar hidden">
+        <div id="userOrdersListContainer" class="space-y-3">
+          <!-- Dynamic orders injected here -->
+        </div>
+      </div>
+
+      <!-- Profile Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button 
+          onclick="handleLogout()" 
+          class="px-4 py-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition flex items-center gap-1.5"
+        >
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Log Out</span>
+        </button>
+
+        <button 
+          id="closeProfileFooterBtn" 
+          class="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition"
+        >
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Client Script -->
+  <script src="/app.js"></script>
+</body>
+</html>
