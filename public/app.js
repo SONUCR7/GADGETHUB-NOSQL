@@ -15,6 +15,20 @@ let currentLang = localStorage.getItem('gadgethub_lang') || 'en';
 // Shopping Cart (Persisted in localStorage)
 let cart = JSON.parse(localStorage.getItem('gadgethub_cart') || '[]');
 
+// Wishlist State (Persisted in localStorage)
+let wishlist = JSON.parse(localStorage.getItem('gadgethub_wishlist') || '[]');
+
+// Gadget Comparison State (Up to 2 gadgets)
+let compareList = [];
+
+// Promo Coupon State
+let appliedCoupon = null;
+const AVAILABLE_COUPONS = {
+  SAVE10: { type: 'percent', value: 10, label: '10% OFF on all gadgets' },
+  FLAT500: { type: 'flat', value: 500, minOrder: 2000, label: '₹500 Flat OFF (min ₹2,000)' },
+  VIP2026: { type: 'percent', value: 15, label: '15% VIP Gadget Enthusiast Discount' }
+};
+
 // User Authentication State (Persisted in localStorage)
 let authToken = localStorage.getItem('gadgethub_token') || null;
 let currentUser = JSON.parse(localStorage.getItem('gadgethub_user') || 'null');
@@ -406,6 +420,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadProducts();
   loadStats();
   renderCart();
+  updateWishlistUI();
+  updateCompareDock();
 });
 
 // Setup All DOM Event Listeners
@@ -497,6 +513,16 @@ function setupEventListeners() {
     });
   }
   if (checkoutBtn) checkoutBtn.addEventListener('click', handleCheckout);
+
+  // Wishlist Drawer Toggles
+  const openWishlistBtn = document.getElementById('openWishlistBtn');
+  if (openWishlistBtn) openWishlistBtn.addEventListener('click', openWishlistDrawer);
+  const wishlistDrawerBackdrop = document.getElementById('wishlistDrawerBackdrop');
+  if (wishlistDrawerBackdrop) {
+    wishlistDrawerBackdrop.addEventListener('click', (e) => {
+      if (e.target === wishlistDrawerBackdrop) closeWishlistDrawer();
+    });
+  }
 
   // Auth & Profile Toggles
   if (openAuthModalBtn) openAuthModalBtn.addEventListener('click', () => showGate('login', true));
@@ -616,6 +642,8 @@ function continueAsGuest() {
   if (window.location.pathname !== '/') {
     window.history.pushState(null, '', '/');
   }
+  loadProducts();
+  loadStats();
   showToast('Welcome to GadgetHub! Exploring catalog in guest mode.', 'info');
 }
 
@@ -1052,8 +1080,13 @@ function renderProfileOrders(orders) {
         </div>
 
         <div class="pt-1 text-[11px] text-slate-500 flex items-center justify-between">
-          <span class="truncate max-w-[280px]"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${escapeHtml(o.shippingAddress || 'Home Address')}</span>
-          <span class="text-emerald-700 font-bold"><i class="fa-solid fa-truck-fast mr-1"></i>Free Express</span>
+          <span class="truncate max-w-[260px]"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${escapeHtml(o.shippingAddress || 'Home Address')}</span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="viewOrderInvoice('${escapeHtml(o.orderId)}')" class="px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg flex items-center gap-1 transition shadow-sm cursor-pointer">
+              <i class="fa-solid fa-file-invoice text-emerald-600"></i> Tax Invoice
+            </button>
+            <span class="text-emerald-700 font-bold hidden sm:inline"><i class="fa-solid fa-truck-fast mr-1"></i>Free Express</span>
+          </div>
         </div>
       </div>
     `;
@@ -1386,6 +1419,8 @@ function renderProducts(products) {
 
     const reviewCount = product.reviews ? product.reviews.length : 0;
     const ratingStars = getStarHtml(product.avgRating || 0);
+    const isWishlisted = wishlist.includes(product._id);
+    const isCompared = compareList.includes(product._id);
 
     return `
       <div class="glass-card rounded-3xl overflow-hidden flex flex-col group relative">
@@ -1403,9 +1438,19 @@ function renderProducts(products) {
           <span class="absolute top-3.5 left-3.5 px-3 py-1 rounded-xl text-[11px] font-bold bg-white/90 backdrop-blur-md text-slate-800 shadow-md">
             ${escapeHtml(product.category)}
           </span>
-          <span class="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-xl text-[11px] font-bold ${product.inStock ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} shadow-md">
-            ${product.inStock ? t('inStockBadge') : t('outOfStockBadge')}
-          </span>
+          <div class="absolute top-3.5 right-3.5 flex items-center gap-1.5 z-10">
+            <button 
+              type="button" 
+              onclick="event.stopPropagation(); toggleWishlist('${product._id}')" 
+              class="w-7 h-7 rounded-xl bg-white/90 backdrop-blur-md flex items-center justify-center text-xs shadow-md transition active:scale-90 ${isWishlisted ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'} cursor-pointer"
+              title="Save to Wishlist"
+            >
+              <i class="${isWishlisted ? 'fa-solid fa-heart' : 'fa-regular fa-heart'}"></i>
+            </button>
+            <span class="px-2.5 py-1 rounded-xl text-[11px] font-bold ${product.inStock ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} shadow-md">
+              ${product.inStock ? t('inStockBadge') : t('outOfStockBadge')}
+            </span>
+          </div>
         </div>
 
         <!-- Product Content -->
@@ -1638,6 +1683,68 @@ async function handleCheckout() {
 }
 
 // ======================== MODAL: AMAZON DETAILS & REAL REVIEWS ========================
+let currentModalGallery = [];
+let currentModalImageIndex = 0;
+
+function switchModalProductImage(indexOrUrl, clickedBtn) {
+  let targetIndex = 0;
+  if (typeof indexOrUrl === 'number') {
+    targetIndex = indexOrUrl;
+  } else if (typeof indexOrUrl === 'string') {
+    const foundIdx = currentModalGallery.indexOf(indexOrUrl);
+    targetIndex = foundIdx !== -1 ? foundIdx : 0;
+  }
+  
+  if (!currentModalGallery || currentModalGallery.length === 0) return;
+  if (targetIndex < 0) targetIndex = 0;
+  if (targetIndex >= currentModalGallery.length) targetIndex = currentModalGallery.length - 1;
+  currentModalImageIndex = targetIndex;
+
+  const targetUrl = currentModalGallery[targetIndex] || '';
+  const mainImg = document.getElementById('modalProductImage');
+  if (mainImg && targetUrl) {
+    mainImg.style.opacity = '0.4';
+    mainImg.style.transform = 'scale(0.97)';
+    setTimeout(() => {
+      mainImg.src = targetUrl;
+      mainImg.style.opacity = '1';
+      mainImg.style.transform = 'scale(1)';
+    }, 120);
+  }
+
+  // Update angle pill
+  const angleText = document.getElementById('modalAngleText');
+  if (angleText) {
+    const angleLabels = ['Front View', 'Side Profile', 'Back / Camera View', 'Detail / In-Use View'];
+    const label = angleLabels[targetIndex] || `Angle ${targetIndex + 1}`;
+    angleText.textContent = `Angle ${targetIndex + 1} of ${currentModalGallery.length} • ${label}`;
+  }
+
+  // Update thumbnail buttons styling
+  const rail = document.getElementById('modalThumbnailsRail');
+  if (rail) {
+    const buttons = rail.querySelectorAll('.modal-thumb-btn');
+    buttons.forEach((btn, idx) => {
+      if (idx === targetIndex) {
+        btn.classList.add('border-emerald-600', 'ring-2', 'ring-emerald-500/30', 'scale-105');
+        btn.classList.remove('border-slate-200', 'opacity-70');
+      } else {
+        btn.classList.remove('border-emerald-600', 'ring-2', 'ring-emerald-500/30', 'scale-105');
+        btn.classList.add('border-slate-200', 'opacity-70');
+      }
+    });
+  }
+}
+
+function cycleModalImage(direction) {
+  if (!currentModalGallery || currentModalGallery.length <= 1) return;
+  let nextIdx = (currentModalImageIndex + direction + currentModalGallery.length) % currentModalGallery.length;
+  switchModalProductImage(nextIdx);
+}
+
+window.switchModalProductImage = switchModalProductImage;
+window.cycleModalImage = cycleModalImage;
+
 async function viewProductDetails(productId) {
   try {
     const res = await fetch(`/api/products/${productId}`);
@@ -1665,24 +1772,39 @@ function populateDetailModal(p) {
   const breadcrumb = document.getElementById('modalBreadcrumbCat');
   if (breadcrumb) breadcrumb.textContent = p.category;
 
-  // Main Image & Thumbnails
-  const mainImg = document.getElementById('modalProductImage');
-  if (mainImg) mainImg.src = p.imageUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=500';
+  // Dynamic Multi-Angle Image Gallery Setup
+  currentModalGallery = (Array.isArray(p.images) && p.images.length > 0) 
+    ? p.images 
+    : [p.imageUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=500'];
+  currentModalImageIndex = 0;
 
-  const thumb1 = document.getElementById('thumb1');
-  const thumb2 = document.getElementById('thumb2');
-  const thumb3 = document.getElementById('thumb3');
-  if (thumb1) {
-    thumb1.src = p.imageUrl;
-    thumb1.parentElement.onclick = () => { if (mainImg) mainImg.src = p.imageUrl; };
+  const mainImg = document.getElementById('modalProductImage');
+  if (mainImg) {
+    mainImg.src = currentModalGallery[0];
+    mainImg.alt = p.name || 'Product Image';
+    mainImg.style.opacity = '1';
+    mainImg.style.transform = 'scale(1)';
   }
-  if (thumb2) {
-    thumb2.src = p.imageUrl;
-    thumb2.parentElement.onclick = () => { if (mainImg) mainImg.src = p.imageUrl; };
+
+  const angleText = document.getElementById('modalAngleText');
+  if (angleText) {
+    angleText.textContent = `Angle 1 of ${currentModalGallery.length} • Front View`;
   }
-  if (thumb3) {
-    thumb3.src = p.imageUrl;
-    thumb3.parentElement.onclick = () => { if (mainImg) mainImg.src = p.imageUrl; };
+
+  const rail = document.getElementById('modalThumbnailsRail');
+  if (rail) {
+    const angleNames = ['Front View', 'Side Profile', 'Back / Camera View', 'Detail Angle'];
+    rail.innerHTML = currentModalGallery.map((url, idx) => `
+      <button 
+        type="button"
+        onclick="switchModalProductImage(${idx}, this)"
+        onmouseenter="switchModalProductImage(${idx}, this)"
+        title="View ${angleNames[idx] || 'Angle ' + (idx + 1)}"
+        class="modal-thumb-btn w-13 h-13 sm:w-14 sm:h-14 rounded-xl border-2 ${idx === 0 ? 'border-emerald-600 ring-2 ring-emerald-500/30 scale-105' : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300'} overflow-hidden shadow-sm shrink-0 transition-all p-0.5 bg-white flex items-center justify-center cursor-pointer group"
+      >
+        <img src="${url}" alt="Angle ${idx + 1}" class="w-full h-full object-cover rounded-lg group-hover:scale-110 transition-transform duration-200">
+      </button>
+    `).join('');
   }
 
   // Titles & Brand Link
@@ -2132,4 +2254,454 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+
+// ======================== WISHLIST SYSTEM ========================
+function toggleWishlist(productId) {
+  const index = wishlist.indexOf(productId);
+  if (index > -1) {
+    wishlist.splice(index, 1);
+    showToast('Removed from your Wishlist', 'info');
+  } else {
+    wishlist.push(productId);
+    showToast('Saved to your Wishlist! ❤️', 'success');
+  }
+  localStorage.setItem('gadgethub_wishlist', JSON.stringify(wishlist));
+  updateWishlistUI();
+  renderProducts(currentProducts);
+}
+
+function updateWishlistUI() {
+  const badge = document.getElementById('wishlistBadge');
+  const drawerBadge = document.getElementById('wishlistDrawerCountBadge');
+  if (badge) badge.textContent = formatNumber(wishlist.length);
+  if (drawerBadge) drawerBadge.textContent = `${formatNumber(wishlist.length)} items`;
+}
+
+function openWishlistDrawer() {
+  const backdrop = document.getElementById('wishlistDrawerBackdrop');
+  const panel = document.getElementById('wishlistDrawerPanel');
+  if (!backdrop || !panel) return;
+
+  renderWishlistItems();
+  backdrop.classList.remove('hidden');
+  setTimeout(() => {
+    panel.classList.remove('translate-x-full');
+  }, 10);
+}
+
+function closeWishlistDrawer() {
+  const backdrop = document.getElementById('wishlistDrawerBackdrop');
+  const panel = document.getElementById('wishlistDrawerPanel');
+  if (!backdrop || !panel) return;
+
+  panel.classList.add('translate-x-full');
+  setTimeout(() => {
+    backdrop.classList.add('hidden');
+  }, 300);
+}
+
+function renderWishlistItems() {
+  const list = document.getElementById('wishlistItemsList');
+  if (!list) return;
+
+  const wishlistedProducts = currentProducts.filter(p => wishlist.includes(p._id));
+
+  if (wishlistedProducts.length === 0) {
+    list.innerHTML = `
+      <div class="text-center py-16 text-slate-400">
+        <div class="w-16 h-16 bg-rose-50 text-rose-300 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+          <i class="fa-solid fa-heart-crack"></i>
+        </div>
+        <p class="font-bold text-slate-700">Your Wishlist is Empty</p>
+        <p class="text-xs text-slate-400 mt-1">Click the heart icon on any gadget to save your favorites!</p>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = wishlistedProducts.map(p => `
+    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center gap-3">
+      <img src="${p.imageUrl}" alt="${escapeHtml(p.name)}" class="w-14 h-14 object-cover rounded-xl border border-slate-200">
+      <div class="flex-1 min-w-0">
+        <h4 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(p.name)}</h4>
+        <p class="text-xs font-black text-slate-800 mt-0.5">${formatCurrency(p.price)}</p>
+        <div class="flex items-center gap-2 mt-2">
+          <button onclick="moveWishlistToCart('${p._id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 shadow-sm cursor-pointer">
+            <i class="fa-solid fa-cart-plus text-[10px]"></i> Move to Cart
+          </button>
+          <button onclick="toggleWishlist('${p._id}'); renderWishlistItems();" class="text-rose-500 hover:text-rose-700 text-xs p-1 cursor-pointer" title="Remove">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function moveWishlistToCart(productId) {
+  addToCart(productId);
+  toggleWishlist(productId);
+  renderWishlistItems();
+}
+
+function clearAllWishlist() {
+  wishlist = [];
+  localStorage.setItem('gadgethub_wishlist', JSON.stringify(wishlist));
+  updateWishlistUI();
+  renderWishlistItems();
+  renderProducts(currentProducts);
+  showToast('Wishlist cleared', 'info');
+}
+
+function addAllWishlistToCart() {
+  if (wishlist.length === 0) return;
+  wishlist.forEach(id => addToCart(id));
+  wishlist = [];
+  localStorage.setItem('gadgethub_wishlist', JSON.stringify(wishlist));
+  updateWishlistUI();
+  renderWishlistItems();
+  renderProducts(currentProducts);
+  closeWishlistDrawer();
+  toggleCartDrawer(true);
+  showToast('All wishlisted items moved to cart! 🛒', 'success');
+}
+
+// ======================== GADGET COMPARISON SYSTEM ========================
+function toggleCompare(productId) {
+  const index = compareList.indexOf(productId);
+  if (index > -1) {
+    compareList.splice(index, 1);
+  } else {
+    if (compareList.length >= 2) {
+      showToast('You can compare up to 2 gadgets at a time. Replacing earliest selection.', 'warning');
+      compareList.shift();
+    }
+    compareList.push(productId);
+  }
+  updateCompareDock();
+  renderProducts(currentProducts);
+}
+
+function updateCompareDock() {
+  const dock = document.getElementById('compareDock');
+  const countSpan = document.getElementById('compareCount');
+  const thumbs = document.getElementById('compareThumbnails');
+  if (!dock) return;
+
+  if (compareList.length === 0) {
+    dock.classList.add('hidden');
+    return;
+  }
+
+  dock.classList.remove('hidden');
+  if (countSpan) countSpan.textContent = compareList.length;
+
+  const comparedProducts = currentProducts.filter(p => compareList.includes(p._id));
+  if (thumbs) {
+    thumbs.innerHTML = comparedProducts.map(p => `
+      <div class="relative group">
+        <img src="${p.imageUrl}" alt="${escapeHtml(p.name)}" class="w-9 h-9 object-cover rounded-xl border border-slate-600">
+        <button onclick="toggleCompare('${p._id}')" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center text-[9px] shadow cursor-pointer">
+          ×
+        </button>
+      </div>
+    `).join('');
+  }
+}
+
+function clearComparison() {
+  compareList = [];
+  updateCompareDock();
+  renderProducts(currentProducts);
+}
+
+function openCompareModal() {
+  if (compareList.length < 2) {
+    showToast('Please select 2 gadgets to view side-by-side comparison', 'warning');
+    return;
+  }
+
+  const modal = document.getElementById('compareModal');
+  const container = document.getElementById('compareContentContainer');
+  if (!modal || !container) return;
+
+  const p1 = currentProducts.find(p => p._id === compareList[0]);
+  const p2 = currentProducts.find(p => p._id === compareList[1]);
+  if (!p1 || !p2) return;
+
+  const specs1 = p1.specs || {};
+  const specs2 = p2.specs || {};
+  const allSpecKeys = Array.from(new Set([...Object.keys(specs1), ...Object.keys(specs2)]));
+
+  const priceDiff = Math.abs(p1.price - p2.price);
+  const cheaperProduct = p1.price < p2.price ? p1.name : (p2.price < p1.price ? p2.name : null);
+
+  container.innerHTML = `
+    <!-- Top Hardware Overview -->
+    <div class="grid grid-cols-2 gap-6 pb-6 border-b border-slate-200">
+      <!-- Gadget 1 -->
+      <div class="space-y-3 text-center sm:text-left">
+        <div class="relative h-48 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+          <img src="${p1.imageUrl}" class="w-full h-full object-cover">
+          <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-white/90 text-slate-800 shadow-sm">${escapeHtml(p1.category)}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">${escapeHtml(p1.brand)}</span>
+          <h4 class="text-sm font-extrabold text-slate-900 leading-snug mt-0.5">${escapeHtml(p1.name)}</h4>
+          <p class="text-xl font-black text-slate-900 mt-1">${formatCurrency(p1.price)}</p>
+          <div class="flex items-center gap-1 text-xs font-bold text-amber-500 mt-1">
+            ${getStarHtml(p1.avgRating || 0)}
+            <span class="text-slate-400 font-semibold ml-1">(${p1.reviews ? p1.reviews.length : 0})</span>
+          </div>
+        </div>
+        <button onclick="addToCart('${p1._id}'); showToast('Added ${escapeHtml(p1.name)} to cart!', 'success');" class="btn-3d w-full py-2 px-3 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-cart-plus"></i> Add to Cart
+        </button>
+      </div>
+
+      <!-- Gadget 2 -->
+      <div class="space-y-3 text-center sm:text-left">
+        <div class="relative h-48 bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+          <img src="${p2.imageUrl}" class="w-full h-full object-cover">
+          <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-white/90 text-slate-800 shadow-sm">${escapeHtml(p2.category)}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">${escapeHtml(p2.brand)}</span>
+          <h4 class="text-sm font-extrabold text-slate-900 leading-snug mt-0.5">${escapeHtml(p2.name)}</h4>
+          <p class="text-xl font-black text-slate-900 mt-1">${formatCurrency(p2.price)}</p>
+          <div class="flex items-center gap-1 text-xs font-bold text-amber-500 mt-1">
+            ${getStarHtml(p2.avgRating || 0)}
+            <span class="text-slate-400 font-semibold ml-1">(${p2.reviews ? p2.reviews.length : 0})</span>
+          </div>
+        </div>
+        <button onclick="addToCart('${p2._id}'); showToast('Added ${escapeHtml(p2.name)} to cart!', 'success');" class="btn-3d w-full py-2 px-3 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-cart-plus"></i> Add to Cart
+        </button>
+      </div>
+    </div>
+
+    <!-- Comparative Insights Banner -->
+    <div class="my-5 p-3.5 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center gap-3 text-xs text-indigo-900">
+      <i class="fa-solid fa-lightbulb text-indigo-600 text-sm"></i>
+      <div>
+        <strong>Comparison Summary:</strong> 
+        ${priceDiff > 0 ? `<span class="text-emerald-700 font-bold">${escapeHtml(cheaperProduct)}</span> is <strong class="text-emerald-700">${formatCurrency(priceDiff)}</strong> more affordable.` : 'Both gadgets have the exact same price.'}
+      </div>
+    </div>
+
+    <!-- Technical Specifications Matrix -->
+    <div class="space-y-2">
+      <h5 class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">Technical Specifications Matrix</h5>
+      <div class="border border-slate-200 rounded-2xl overflow-hidden divide-y divide-slate-100 text-xs">
+        ${allSpecKeys.map(key => `
+          <div class="grid grid-cols-12 py-2.5 px-3 hover:bg-slate-50/80 transition">
+            <div class="col-span-4 font-bold text-slate-500">${escapeHtml(key)}</div>
+            <div class="col-span-4 font-semibold text-slate-800 pr-2">${escapeHtml(specs1[key] || '—')}</div>
+            <div class="col-span-4 font-semibold text-slate-800 pl-2 border-l border-slate-100">${escapeHtml(specs2[key] || '—')}</div>
+          </div>
+        `).join('')}
+        ${allSpecKeys.length === 0 ? '<div class="p-4 text-center text-slate-400 text-xs">No specifications recorded for these products</div>' : ''}
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeCompareModal() {
+  const modal = document.getElementById('compareModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+// ======================== COUPON ENGINE ========================
+function applyCoupon() {
+  const input = document.getElementById('couponInput');
+  if (!input) return;
+  const code = input.value.trim().toUpperCase();
+
+  if (!code) {
+    showToast('Please enter a coupon code', 'warning');
+    return;
+  }
+
+  const coupon = AVAILABLE_COUPONS[code];
+  if (!coupon) {
+    showToast('Invalid coupon code! Try SAVE10, FLAT500, or VIP2026', 'error');
+    return;
+  }
+
+  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  if (coupon.minOrder && subtotal < coupon.minOrder) {
+    showToast(`Order must be at least ₹${coupon.minOrder} to use ${code}`, 'warning');
+    return;
+  }
+
+  appliedCoupon = { code, ...coupon };
+  updateCouponUI();
+  renderCart();
+  showToast(`🎉 Coupon "${code}" applied successfully!`, 'success');
+}
+
+function removeCoupon() {
+  appliedCoupon = null;
+  const input = document.getElementById('couponInput');
+  if (input) input.value = '';
+  updateCouponUI();
+  renderCart();
+  showToast('Coupon removed', 'info');
+}
+
+function updateCouponUI() {
+  const badge = document.getElementById('couponActiveBadge');
+  const text = document.getElementById('couponActiveText');
+  if (!badge) return;
+
+  if (appliedCoupon) {
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+    if (text) {
+      text.textContent = appliedCoupon.type === 'percent' 
+        ? `${appliedCoupon.code} Applied (${appliedCoupon.value}% OFF)` 
+        : `${appliedCoupon.code} Applied (₹${appliedCoupon.value} OFF)`;
+    }
+  } else {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
+  }
+}
+
+// ======================== TAX INVOICE GENERATOR ========================
+function viewOrderInvoice(orderId) {
+  if (!currentUser || !currentUser.orders) return;
+  const order = currentUser.orders.find(o => o.orderId === orderId);
+  if (!order) {
+    showToast('Order not found', 'error');
+    return;
+  }
+
+  const modal = document.getElementById('invoiceModal');
+  const container = document.getElementById('invoiceContent');
+  if (!modal || !container) return;
+
+  const dateStr = new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
+  const subtotal = Math.round(order.totalAmount / 1.18);
+  const gstAmount = order.totalAmount - subtotal;
+  const cgst = Math.round(gstAmount / 2);
+  const sgst = gstAmount - cgst;
+
+  const itemsRows = (order.items || []).map((it, idx) => `
+    <tr class="border-b border-slate-100 text-xs">
+      <td class="py-2.5 text-slate-500">${idx + 1}</td>
+      <td class="py-2.5 font-bold text-slate-800">${escapeHtml(it.name)}</td>
+      <td class="py-2.5 text-center text-slate-600">${it.quantity}</td>
+      <td class="py-2.5 text-right font-semibold text-slate-700">${formatCurrency(it.price)}</td>
+      <td class="py-2.5 text-right font-bold text-slate-900">${formatCurrency(it.price * it.quantity)}</td>
+    </tr>
+  `).join('');
+
+  container.innerHTML = `
+    <!-- Invoice Header -->
+    <div class="flex items-start justify-between border-b border-slate-200 pb-6">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm">
+            <i class="fa-solid fa-leaf"></i>
+          </div>
+          <span class="text-lg font-black text-slate-900">GadgetHub Technologies</span>
+        </div>
+        <p class="text-[11px] text-slate-500">Official NoSQL Document-Driven Retail Platform</p>
+        <p class="text-[11px] text-slate-400">GSTIN: 29AAACG1234F1Z8 | HSN: 8471</p>
+      </div>
+
+      <div class="text-right space-y-1">
+        <span class="inline-block px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded uppercase">Tax Invoice</span>
+        <h4 class="text-sm font-black text-slate-900 mt-1">INV-${escapeHtml(order.orderId)}</h4>
+        <p class="text-[11px] text-slate-500">Date: ${dateStr}</p>
+      </div>
+    </div>
+
+    <!-- Billed To & Shipping -->
+    <div class="grid grid-cols-2 gap-6 py-2">
+      <div class="space-y-1">
+        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Customer / Billed To:</span>
+        <p class="text-xs font-bold text-slate-900">${escapeHtml(currentUser.name)}</p>
+        <p class="text-[11px] text-slate-500">${escapeHtml(currentUser.email)}</p>
+        <p class="text-[11px] text-slate-500">${escapeHtml(currentUser.phone || '+91 98765 43210')}</p>
+      </div>
+      <div class="space-y-1 text-right sm:text-left">
+        <span class="text-[10px] font-black uppercase text-slate-400 tracking-wider">Delivery Destination:</span>
+        <p class="text-xs font-bold text-slate-900">${escapeHtml(order.shippingAddress || currentUser.address || 'Standard Verified Address')}</p>
+        <p class="text-[11px] text-emerald-700 font-bold"><i class="fa-solid fa-circle-check"></i> Standard Insured Delivery</p>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-slate-200 text-[10px] uppercase font-black text-slate-400">
+            <th class="py-2">#</th>
+            <th class="py-2">Description</th>
+            <th class="py-2 text-center">Qty</th>
+            <th class="py-2 text-right">Unit Price</th>
+            <th class="py-2 text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary & GST Breakdown -->
+    <div class="flex items-start justify-between pt-4 border-t border-slate-200">
+      <div class="space-y-1">
+        <div class="p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-xl inline-block text-[11px] text-emerald-900">
+          <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-stamp text-emerald-600"></i> Payment Verified & Recorded</p>
+          <p class="text-[10px] text-emerald-700 mt-0.5">MongoDB Document ID: ${escapeHtml(order._id || order.orderId)}</p>
+        </div>
+      </div>
+
+      <div class="w-56 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-500">
+          <span>Net Amount:</span>
+          <span>${formatCurrency(subtotal)}</span>
+        </div>
+        <div class="flex justify-between text-slate-500">
+          <span>CGST (9%):</span>
+          <span>${formatCurrency(cgst)}</span>
+        </div>
+        <div class="flex justify-between text-slate-500">
+          <span>SGST (9%):</span>
+          <span>${formatCurrency(sgst)}</span>
+        </div>
+        <div class="pt-2 border-t border-slate-200 flex justify-between font-black text-slate-900 text-sm">
+          <span>Total Paid:</span>
+          <span>${formatCurrency(order.totalAmount)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeInvoiceModal() {
+  const modal = document.getElementById('invoiceModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
 }

@@ -52,6 +52,10 @@ const productSchema = new mongoose.Schema(
       type: String,
       default: 'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=500'
     },
+    images: {
+      type: [String],
+      default: []
+    },
     description: {
       type: String,
       required: [true, 'Description is required']

@@ -12,6 +12,12 @@ const sampleGadgets = [
     category: 'Smartphones',
     price: 31999,
     imageUrl: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1591337676887-a217a6970a8a?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Segment Most Complete Triple Camera | 50MP | AI Editing | 4nm Processor | sAMOLED | 5000mAh | Gorilla Glass Victus+ | Knox Security | 5 Gen OS Upgrades.',
     specs: {
       Display: '6.7-inch Super AMOLED FHD+ 120Hz (1600 nits)',
@@ -46,6 +52,12 @@ const sampleGadgets = [
     category: 'Smartphones',
     price: 149900,
     imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1695048133021-3965a396e95a?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Forged in titanium and featuring the groundbreaking A17 Pro chip, customizable Action button, and 5x optical zoom camera system.',
     specs: {
       Display: '6.7-inch Super Retina XDR OLED 120Hz',
@@ -74,6 +86,12 @@ const sampleGadgets = [
     category: 'Laptops',
     price: 349900,
     imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'The most advanced Mac laptop for demanding workflows. Powered by the M3 Max chip with 16-core CPU and 40-core GPU.',
     specs: {
       Display: '16.2-inch Liquid Retina XDR (3456 x 2234)',
@@ -97,6 +115,12 @@ const sampleGadgets = [
     category: 'Audio',
     price: 29990,
     imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Industry-leading noise canceling with two processors and eight microphones for unprecedented sound purity and call quality.',
     specs: {
       Driver: '30mm carbon fiber composite',
@@ -124,7 +148,13 @@ const sampleGadgets = [
     brand: 'Samsung',
     category: 'Smartphones',
     price: 129999,
-    imageUrl: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=600&auto=format&fit=crop&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1585060544812-6b45742d762f?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Meet Galaxy S24 Ultra with Galaxy AI, titanium shield exterior, integrated S Pen stylus, and 200MP camera.',
     specs: {
       Display: '6.8-inch Dynamic AMOLED 2X, 2600 nits',
@@ -148,6 +178,12 @@ const sampleGadgets = [
     category: 'Wearables',
     price: 89900,
     imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'The ultimate sports and adventure watch. 49mm aerospace-grade titanium case, 3000-nit display, and dual-frequency GPS.',
     specs: {
       Case: '49mm Titanium with Sapphire crystal',
@@ -170,6 +206,12 @@ const sampleGadgets = [
     category: 'Gaming',
     price: 69990,
     imageUrl: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1592840496694-26d035b52b48?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Handheld Windows 11 gaming console powered by AMD Ryzen Z1 Extreme processor and 120Hz Full HD display.',
     specs: {
       Processor: 'AMD Ryzen Z1 Extreme (8 cores, 16 threads)',
@@ -192,6 +234,12 @@ const sampleGadgets = [
     category: 'Accessories',
     price: 129900,
     imageUrl: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1585790050230-5dd28404ccb9?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'The thinnest Apple product ever. Featuring the revolutionary Ultra Retina XDR tandem OLED display and the breakthrough M4 chip.',
     specs: {
       Display: '13-inch Ultra Retina XDR Tandem OLED (1600 nits peak)',
@@ -214,6 +262,12 @@ const sampleGadgets = [
     category: 'Gaming',
     price: 54990,
     imageUrl: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1622297845775-5ff3fef71d13?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Experience lightning-fast loading with an ultra-high speed SSD, deeper immersion with haptic feedback, and all-new slim design.',
     specs: {
       Storage: '1TB Custom High-Speed SSD (5.5 GB/s)',
@@ -241,6 +295,12 @@ const sampleGadgets = [
     category: 'Laptops',
     price: 189990,
     imageUrl: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'High-performance laptop crafted with machined aluminum and carbon fiber palm rest, powered by Intel Core i9 and RTX 4070.',
     specs: {
       Display: '15.6-inch 3.5K (3456x2160) InfinityEdge OLED Touch',
@@ -263,6 +323,12 @@ const sampleGadgets = [
     category: 'Audio',
     price: 24900,
     imageUrl: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1588423771073-b8903fbb85b5?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Up to 2x more active noise cancellation, Adaptive Audio, Conversation Awareness, and dust/sweat resistance with USB-C case.',
     specs: {
       Chip: 'Apple H2 Headphone chip & U1 in case',
@@ -285,6 +351,12 @@ const sampleGadgets = [
     category: 'Smartphones',
     price: 106999,
     imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Engineered by Google with Tensor G3 chip, cutting-edge AI camera features, polished aluminum frame, and matte back glass.',
     specs: {
       Display: '6.7-inch Super Actua LTPO OLED (1-120Hz, 2400 nits)',
@@ -307,6 +379,12 @@ const sampleGadgets = [
     category: 'Accessories',
     price: 10995,
     imageUrl: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1626218174358-7769486c4b79?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'An iconic performance mouse remastered with Quiet Clicks, 8K DPI tracking that works on glass, and MagSpeed electromagnetic scrolling.',
     specs: {
       Sensor: 'Darkfield 8000 DPI high precision (tracks on glass surfaces)',
@@ -329,6 +407,12 @@ const sampleGadgets = [
     category: 'Gaming',
     price: 31999,
     imageUrl: 'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=600&auto=format&fit=crop&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1612287232737-0b5c1653ff49?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=700&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=700&auto=format&fit=crop&q=80'
+    ],
     description: 'Versatile hybrid gaming system with vibrant 7-inch OLED screen, wide adjustable stand, dock with wired LAN port, and 64GB storage.',
     specs: {
       Display: '7.0-inch multi-touch capacitive OLED screen (720p handheld / 1080p TV)',

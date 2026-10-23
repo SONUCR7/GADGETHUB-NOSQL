@@ -92,7 +92,7 @@ app.get('/api/products/:id', async (req, res) => {
 // 3. POST /api/products - Create a new product (CRUD: Create)
 app.post('/api/products', async (req, res) => {
   try {
-    const { name, brand, category, price, imageUrl, description, specs, inStock } = req.body;
+    const { name, brand, category, price, imageUrl, images, description, specs, inStock } = req.body;
 
     const product = new Product({
       name,
@@ -100,6 +100,7 @@ app.post('/api/products', async (req, res) => {
       category,
       price: Number(price),
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=500',
+      images: Array.isArray(images) && images.length ? images : (imageUrl ? [imageUrl] : []),
       description,
       specs: specs || {},
       inStock: inStock !== undefined ? inStock : true,
@@ -116,7 +117,7 @@ app.post('/api/products', async (req, res) => {
 // 4. PUT /api/products/:id - Update an existing product (CRUD: Update)
 app.put('/api/products/:id', async (req, res) => {
   try {
-    const { name, brand, category, price, imageUrl, description, specs, inStock } = req.body;
+    const { name, brand, category, price, imageUrl, images, description, specs, inStock } = req.body;
 
     const product = await Product.findById(req.params.id);
     if (!product) {
@@ -128,6 +129,7 @@ app.put('/api/products/:id', async (req, res) => {
     if (category) product.category = category;
     if (price !== undefined) product.price = Number(price);
     if (imageUrl) product.imageUrl = imageUrl;
+    if (images && Array.isArray(images)) product.images = images;
     if (description) product.description = description;
     if (specs) product.specs = specs;
     if (inStock !== undefined) product.inStock = inStock;
