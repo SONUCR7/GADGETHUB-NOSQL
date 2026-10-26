@@ -36,7 +36,7 @@ let currentUser = JSON.parse(localStorage.getItem('gadgethub_user') || 'null');
 // ======================== MULTILINGUAL / i18n DICTIONARY ========================
 const i18n = {
   en: {
-    brandSubtitle: 'Dynamic Document-Driven E-Commerce Catalog',
+    brandSubtitle: 'Premium Electronics & Smart Gadgets',
     navAnalytics: 'Analytics',
     navExport: 'Export',
     navCart: 'Cart',
@@ -44,7 +44,7 @@ const i18n = {
     navAuth: 'Sign In',
     searchPlaceholder: 'Search gadgets by name, brand, or feature...',
     statTotalGadgets: 'Total Gadgets',
-    statEmbeddedReviews: 'Embedded Reviews',
+    statEmbeddedReviews: 'Customer Reviews',
     statCategories: 'Categories',
     catAll: 'All Gadgets',
     catSmartphones: 'Smartphones',
@@ -70,7 +70,7 @@ const i18n = {
     inStockBadge: '● In Stock',
     outOfStockBadge: '○ Out of Stock',
     emptyTitle: 'No gadgets found',
-    emptyDesc: 'Try adjusting your search terms or filters, or add a new gadget to your MongoDB catalog.',
+    emptyDesc: 'Try adjusting your search terms or filters to find what you are looking for.',
     emptyReset: 'Reset all filters',
     storeLink: 'Visit the Official Store',
     dealTag: 'Great Indian Festival',
@@ -105,7 +105,7 @@ const i18n = {
     yourName: 'Your Name (or Verified Channel)',
     ratingLabel: 'Rating',
     yourFeedback: 'Your Review & Feedback',
-    submitReviewBtn: 'Submit Review to MongoDB',
+    submitReviewBtn: 'Submit Customer Review',
     closeProductView: 'Close Product View',
     cartTitle: 'Your Shopping Cart',
     cartSubtotalLabel: 'Subtotal',
@@ -119,7 +119,7 @@ const i18n = {
     sidebarLangSubtitle: 'Choose your preferred language:',
     sidebarCategories: 'Categories',
     sidebarWelcomeGuest: 'Welcome to GadgetHub!',
-    sidebarGuestSub: 'Sign in to track orders and manage your NoSQL profile.',
+    sidebarGuestSub: 'Sign in to track orders and manage your profile.',
     sidebarSignIn: 'Sign In / Register',
     sidebarMyProfile: 'Profile',
     tabSignIn: 'Sign In',
@@ -134,7 +134,7 @@ const i18n = {
     noReviewsYet: 'No reviews yet. Be the first to share your thoughts!'
   },
   hi: {
-    brandSubtitle: 'डायनामिक डॉक्यूमेंट-संचालित ई-कॉमर्स कैटलॉग',
+    brandSubtitle: 'प्रीमियम इलेक्ट्रॉनिक्स और स्मार्ट गैजेट्स',
     navAnalytics: 'एनालिटिक्स',
     navExport: 'एक्सपोर्ट',
     navCart: 'कार्ट',
@@ -142,7 +142,7 @@ const i18n = {
     navAuth: 'साइन इन',
     searchPlaceholder: 'नाम, ब्रांड या विशेषता द्वारा गैजेट खोजें...',
     statTotalGadgets: 'कुल गैजेट्स',
-    statEmbeddedReviews: 'एम्बेडेड समीक्षाएं',
+    statEmbeddedReviews: 'ग्राहक समीक्षाएं',
     statCategories: 'श्रेणियां',
     catAll: 'सभी गैजेट्स',
     catSmartphones: 'स्मार्टफ़ोन',
@@ -203,7 +203,7 @@ const i18n = {
     yourName: 'आपका नाम (या सत्यापित चैनल)',
     ratingLabel: 'रेटिंग',
     yourFeedback: 'आपकी समीक्षा और प्रतिक्रिया',
-    submitReviewBtn: 'MongoDB में समीक्षा सबमिट करें',
+    submitReviewBtn: 'समीक्षा सबमिट करें',
     closeProductView: 'उत्पाद दृश्य बंद करें',
     cartTitle: 'आपकी शॉपिंग कार्ट',
     cartSubtotalLabel: 'उप-योग',
@@ -217,7 +217,7 @@ const i18n = {
     sidebarLangSubtitle: 'अपनी पसंदीदा भाषा चुनें:',
     sidebarCategories: 'श्रेणियां',
     sidebarWelcomeGuest: 'GadgetHub में आपका स्वागत है!',
-    sidebarGuestSub: 'ऑर्डर ट्रैक करने और अपनी NoSQL प्रोफ़ाइल प्रबंधित करने के लिए साइन इन करें।',
+    sidebarGuestSub: 'ऑर्डर ट्रैक करने और अपनी प्रोफ़ाइल प्रबंधित करने के लिए साइन इन करें।',
     sidebarSignIn: 'साइन इन / रजिस्टर',
     sidebarMyProfile: 'प्रोफ़ाइल',
     tabSignIn: 'साइन इन',
@@ -232,7 +232,7 @@ const i18n = {
     noReviewsYet: 'अभी तक कोई समीक्षा नहीं है। अपने विचार साझा करने वाले पहले व्यक्ति बनें!'
   },
   bn: {
-    brandSubtitle: 'ডায়নামিক ডকুমেন্ট-চালিত ই-কমার্স ক্যাটালগ',
+    brandSubtitle: 'প্রিমিয়াম ইলেকট্রনিক্স ও স্মার্ট গ্যাজেট',
     navAnalytics: 'অ্যানালিটিক্স',
     navExport: 'এক্সপোর্ট',
     navCart: 'কার্ট',
@@ -240,7 +240,7 @@ const i18n = {
     navAuth: 'সাইন ইন',
     searchPlaceholder: 'নাম, ব্র্যান্ড বা বৈশিষ্ট্য দিয়ে গ্যাজেট খুঁজুন...',
     statTotalGadgets: 'মোট গ্যাজেট',
-    statEmbeddedReviews: 'এমবেডেড রিভিউ',
+    statEmbeddedReviews: 'গ্রাহক রিভিউ',
     statCategories: 'ক্যাটাগরি',
     catAll: 'সমস্ত গ্যাজেট',
     catSmartphones: 'স্মার্টফোন',
@@ -266,7 +266,7 @@ const i18n = {
     inStockBadge: '● স্টকে আছে',
     outOfStockBadge: '○ স্টক শেষ',
     emptyTitle: 'কোনো গ্যাজেট পাওয়া যায়নি',
-    emptyDesc: 'আপনার অনুসন্ধান বা ফিল্টার পরিবর্তন করুন, অথবা নতুন গ্যাজেট যোগ করুন।',
+    emptyDesc: 'আপনার অনুসন্ধান বা ফিল্টার পরিবর্তন করার চেষ্টা করুন।',
     emptyReset: 'সকল ফিল্টার রিসেট করুন',
     storeLink: 'অফিসিয়াল স্টোর দেখুন',
     dealTag: 'গ্রেট ইন্ডিয়ান ফেস্টিভ্যাল',
@@ -301,7 +301,7 @@ const i18n = {
     yourName: 'আপনার নাম (বা ভেরিফায়েড চ্যানেল)',
     ratingLabel: 'রেটিং',
     yourFeedback: 'আপনার রিভিউ ও প্রতিক্রিয়া',
-    submitReviewBtn: 'MongoDB-তে রিভিউ জমা দিন',
+    submitReviewBtn: 'রিভিউ জমা দিন',
     closeProductView: 'পণ্য ভিউ বন্ধ করুন',
     cartTitle: 'আপনার শপিং কার্ট',
     cartSubtotalLabel: 'সাবটোটাল',
@@ -315,7 +315,7 @@ const i18n = {
     sidebarLangSubtitle: 'আপনার পছন্দের ভাষা নির্বাচন করুন:',
     sidebarCategories: 'ক্যাটাগরি',
     sidebarWelcomeGuest: 'GadgetHub-এ আপনাকে স্বাগতম!',
-    sidebarGuestSub: 'অর্ডার ট্র্যাক করতে এবং আপনার NoSQL প্রোফাইল পরিচালনা করতে সাইন ইন করুন।',
+    sidebarGuestSub: 'অর্ডার ট্র্যাক করতে এবং আপনার প্রোফাইল পরিচালনা করতে সাইন ইন করুন।',
     sidebarSignIn: 'সাইন ইন / রেজিস্টার',
     sidebarMyProfile: 'প্রোফাইল',
     tabSignIn: 'সাইন ইন',
@@ -1038,7 +1038,7 @@ function renderProfileOrders(orders) {
       <div class="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200 text-slate-400">
         <i class="fa-solid fa-box-open text-3xl mb-2 text-slate-300"></i>
         <p class="font-bold text-slate-700 text-xs">No orders yet</p>
-        <p class="text-[11px] text-slate-400 mt-0.5">Explore gadgets and checkout to see your orders recorded in MongoDB.</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">Explore gadgets and checkout to see your orders recorded here.</p>
       </div>
     `;
     return;
@@ -1126,7 +1126,7 @@ async function handleProfileUpdate(e) {
       localStorage.setItem('gadgethub_user', JSON.stringify(currentUser));
       updateAuthUI();
       openProfileModal(); // Refresh modal
-      showToast('Profile updated successfully in MongoDB!', 'success');
+      showToast('Profile updated successfully!', 'success');
     } else {
       showToast(data.message || 'Error updating profile', 'error');
     }
@@ -1361,7 +1361,7 @@ async function loadProducts() {
       <div class="col-span-full p-8 text-center bg-red-50 text-red-700 rounded-2xl border border-red-200">
         <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
         <p class="font-bold">Unable to connect to the backend server</p>
-        <p class="text-xs mt-1">Make sure the Express server is running at <code>http://localhost:5000</code> and MongoDB is connected.</p>
+        <p class="text-xs mt-1">Make sure the backend server is running at <code>http://localhost:5000</code>.</p>
       </div>
     `;
   }
@@ -1667,7 +1667,7 @@ async function handleCheckout() {
         if (!currentUser.orders) currentUser.orders = [];
         currentUser.orders.unshift(data.data);
         localStorage.setItem('gadgethub_user', JSON.stringify(currentUser));
-        showToast(`🎉 Order ${data.data.orderId} Placed & Recorded in MongoDB! (${formatCurrency(total)})`, 'success');
+        showToast(`🎉 Order ${data.data.orderId} Placed Successfully! (${formatCurrency(total)})`, 'success');
       }
     } catch (err) {
       console.error('Order save error:', err);
@@ -1966,7 +1966,7 @@ async function handleAddReviewSubmit(e) {
 
     const data = await res.json();
     if (data.success) {
-      showToast('Review posted successfully to MongoDB!', 'success');
+      showToast('Review posted successfully!', 'success');
       viewProductDetails(selectedProductForDetail._id);
       loadProducts();
       loadStats();
@@ -2620,7 +2620,7 @@ function viewOrderInvoice(orderId) {
           </div>
           <span class="text-lg font-black text-slate-900">GadgetHub Technologies</span>
         </div>
-        <p class="text-[11px] text-slate-500">Official NoSQL Document-Driven Retail Platform</p>
+        <p class="text-[11px] text-slate-500">Official Tech & Smart Electronics Retail Platform</p>
         <p class="text-[11px] text-slate-400">GSTIN: 29AAACG1234F1Z8 | HSN: 8471</p>
       </div>
 
@@ -2669,7 +2669,7 @@ function viewOrderInvoice(orderId) {
       <div class="space-y-1">
         <div class="p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-xl inline-block text-[11px] text-emerald-900">
           <p class="font-bold flex items-center gap-1.5"><i class="fa-solid fa-stamp text-emerald-600"></i> Payment Verified & Recorded</p>
-          <p class="text-[10px] text-emerald-700 mt-0.5">MongoDB Document ID: ${escapeHtml(order._id || order.orderId)}</p>
+          <p class="text-[10px] text-emerald-700 mt-0.5">Verified Reference ID: ${escapeHtml(order._id || order.orderId)}</p>
         </div>
       </div>
 

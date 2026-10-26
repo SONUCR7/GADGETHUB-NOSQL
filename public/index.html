@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GadgetHub | NoSQL MongoDB Gadget Catalog</title>
+  <title>GadgetHub | Premium Electronics & Tech Store</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome Icons CDN -->
@@ -281,11 +281,8 @@
           <div>
             <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               GadgetHub
-              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                MongoDB NoSQL
-              </span>
             </h1>
-            <p id="i18n-brandSubtitle" class="text-xs text-slate-500 hidden sm:block">Dynamic Document-Driven E-Commerce Catalog</p>
+            <p id="i18n-brandSubtitle" class="text-xs text-slate-500 hidden sm:block">Premium Electronics & Smart Gadgets</p>
           </div>
         </div>
 
@@ -386,7 +383,7 @@
           </div>
           <div>
             <h3 class="text-sm font-black text-slate-900">GadgetHub</h3>
-            <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.2 rounded">MongoDB Store</span>
+            <span class="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.5 rounded">Official Store</span>
           </div>
         </div>
         <button id="closeSidebarBtn" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition">
@@ -401,7 +398,7 @@
         <div id="sidebarUserSection" class="p-3 bg-slate-50 rounded-2xl border border-slate-200">
           <div id="sidebarGuestBlock">
             <p id="i18n-sidebarWelcomeGuest" class="text-xs font-bold text-slate-800 mb-1">Welcome to GadgetHub!</p>
-            <p id="i18n-sidebarGuestSub" class="text-[11px] text-slate-500 mb-2.5">Sign in to track orders and manage your NoSQL profile.</p>
+            <p id="i18n-sidebarGuestSub" class="text-[11px] text-slate-500 mb-2.5">Sign in to track orders and manage your profile.</p>
             <button onclick="closeSidebar(); showGate('login');" class="btn-3d w-full py-2 px-3 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center gap-1.5">
               <i class="fa-regular fa-user"></i>
               <span id="i18n-sidebarSignIn">Sign In / Register</span>
@@ -465,13 +462,13 @@
           </div>
         </div>
 
-        <!-- System Architecture -->
+        <!-- Store Assurance -->
         <div class="border-t border-slate-200 pt-4">
-          <span class="text-xs font-black text-slate-700 uppercase tracking-wider block mb-2">Architecture</span>
-          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-500 space-y-1">
-            <p><strong>DB:</strong> MongoDB (NoSQL)</p>
-            <p><strong>Model:</strong> Embedded Reviews</p>
-            <p><strong>Analytics:</strong> Aggregation Pipeline</p>
+          <span class="text-xs font-black text-slate-700 uppercase tracking-wider block mb-2">Our Assurance</span>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] text-slate-600 space-y-1.5">
+            <p class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-600"></i> 100% Genuine Tech Products</p>
+            <p class="flex items-center gap-1.5"><i class="fa-solid fa-truck-fast text-emerald-600"></i> Fast & Insured Express Delivery</p>
+            <p class="flex items-center gap-1.5"><i class="fa-solid fa-rotate-left text-emerald-600"></i> 7-Day Easy Replacement</p>
           </div>
         </div>
 
@@ -514,7 +511,7 @@
           <i class="fa-solid fa-comments"></i>
         </div>
         <div>
-          <p id="i18n-statEmbeddedReviews" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Embedded Reviews</p>
+          <p id="i18n-statEmbeddedReviews" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer Reviews</p>
           <h3 id="statTotalReviews" class="text-3xl font-black text-slate-900 tracking-tight">-</h3>
         </div>
       </div>
@@ -603,7 +600,7 @@
         <i class="fa-solid fa-box-open"></i>
       </div>
       <h3 class="text-lg font-bold text-slate-800">No gadgets found</h3>
-      <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-4">Try adjusting your search terms or filters, or add a new gadget to your MongoDB catalog.</p>
+      <p class="text-sm text-slate-500 max-w-sm mx-auto mt-1 mb-4">Try adjusting your search terms or filters to find what you're looking for.</p>
       <button onclick="resetFilters()" class="text-sm font-medium text-emerald-600 hover:text-emerald-700 underline">Reset all filters</button>
     </div>
 
@@ -617,7 +614,7 @@
           <i class="fa-solid fa-leaf"></i>
         </div>
         <span class="font-bold text-slate-700">GadgetHub &copy; 2026</span>
-        <span class="text-slate-400">| Powered by MongoDB NoSQL & Express</span>
+        <span class="text-slate-400">| Premium Electronics & Smart Devices</span>
       </div>
       <div class="flex items-center gap-4 text-slate-500">
         <span>High-Performance Tech Catalog</span>
@@ -1101,7 +1098,7 @@
             </div>
             <div>
               <h3 class="text-base font-black text-slate-900">GadgetHub Account</h3>
-              <p class="text-[11px] text-emerald-800 font-semibold">MongoDB NoSQL Identity System</p>
+              <p class="text-[11px] text-emerald-800 font-semibold">Secure Member Access</p>
             </div>
           </div>
           <button id="closeAuthModalBtn" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition">
@@ -1266,7 +1263,7 @@
     </div>
   </div>
 
-  <!-- 6. User Profile & Order History Modal (NoSQL Dashboard) -->
+  <!-- 6. User Profile & Order History Modal -->
   <div id="profileModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden my-6 transform transition-all border border-slate-200">
       
@@ -1289,7 +1286,7 @@
             </div>
             <p id="profileHeaderEmail" class="text-xs text-slate-300 mt-0.5">priya@gadgethub.com</p>
             <div class="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
-              <span><i class="fa-solid fa-database text-emerald-400 mr-1"></i>MongoDB NoSQL Document</span>
+              <span><i class="fa-solid fa-shield-check text-emerald-400 mr-1"></i>Verified Member</span>
               <span>•</span>
               <span id="profileMemberSince">Member since 2026</span>
             </div>
@@ -1380,7 +1377,7 @@
               class="btn-3d px-5 py-2.5 text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl shadow-md active:scale-95 transition flex items-center gap-1.5"
             >
               <i class="fa-solid fa-floppy-disk"></i>
-              <span>Save Changes to MongoDB</span>
+              <span>Save Profile Changes</span>
             </button>
           </div>
         </form>
@@ -1426,7 +1423,7 @@
           </div>
           <div>
             <h3 class="text-base font-black text-slate-900">Side-by-Side Gadget Comparison</h3>
-            <p class="text-xs text-slate-500">Live dynamic specification matrix powered by MongoDB NoSQL</p>
+            <p class="text-xs text-slate-500">Live dynamic specification matrix</p>
           </div>
         </div>
         <button onclick="closeCompareModal()" class="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition">
