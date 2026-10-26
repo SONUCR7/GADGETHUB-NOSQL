@@ -2035,7 +2035,6 @@ function selectExchangeOption(type) {
       const totalDiscountPercent = Math.round(((mrp - exchangePrice) / mrp) * 100);
       discountBadge.textContent = `-${totalDiscountPercent}%`;
     }
-    showToast(`Exchange option active! Saved ${formatCurrency(maxExchangeOff)} on ${selectedProductForDetail.name}`, 'info');
   } else {
     if (radioWith) radioWith.checked = false;
     if (radioWithout) radioWithout.checked = true;
