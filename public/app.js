@@ -594,15 +594,30 @@ function hideGate() {
 function switchGateAuth(tab = 'login', updateUrl = true) {
   const loginSec = document.getElementById('gateLoginSection');
   const regSec = document.getElementById('gateRegisterSection');
+  const tabLogin = document.getElementById('gateTabLoginBtn');
+  const tabReg = document.getElementById('gateTabRegisterBtn');
+
   if (tab === 'register') {
     if (loginSec) loginSec.classList.add('hidden');
     if (regSec) regSec.classList.remove('hidden');
+    if (tabLogin) {
+      tabLogin.className = 'px-5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer';
+    }
+    if (tabReg) {
+      tabReg.className = 'px-5 py-2 rounded-xl text-xs font-black transition cursor-pointer bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950 shadow-md shadow-cyan-500/20';
+    }
     if (updateUrl && window.location.pathname !== '/register') {
       window.history.pushState(null, '', '/register');
     }
   } else {
     if (loginSec) loginSec.classList.remove('hidden');
     if (regSec) regSec.classList.add('hidden');
+    if (tabLogin) {
+      tabLogin.className = 'px-5 py-2 rounded-xl text-xs font-black transition cursor-pointer bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950 shadow-md shadow-cyan-500/20';
+    }
+    if (tabReg) {
+      tabReg.className = 'px-5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer';
+    }
     if (updateUrl && window.location.pathname !== '/login') {
       window.history.pushState(null, '', '/login');
     }
@@ -848,14 +863,17 @@ function switchAuthTab(tab) {
   const formLogin = document.getElementById('loginForm');
   const formRegister = document.getElementById('registerForm');
 
+  const activeClass = 'flex-1 py-3 text-xs font-black text-cyan-300 border-b-2 border-cyan-400 bg-cyan-950/30 transition text-center flex items-center justify-center gap-1.5';
+  const inactiveClass = 'flex-1 py-3 text-xs font-semibold text-slate-400 hover:text-slate-200 transition text-center flex items-center justify-center gap-1.5';
+
   if (tab === 'login') {
-    if (tabLogin) tabLogin.className = 'flex-1 py-3 text-xs font-black text-emerald-700 border-b-2 border-emerald-600 transition text-center';
-    if (tabRegister) tabRegister.className = 'flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-700 transition text-center';
+    if (tabLogin) tabLogin.className = activeClass;
+    if (tabRegister) tabRegister.className = inactiveClass;
     if (formLogin) formLogin.classList.remove('hidden');
     if (formRegister) formRegister.classList.add('hidden');
   } else {
-    if (tabLogin) tabLogin.className = 'flex-1 py-3 text-xs font-bold text-slate-400 hover:text-slate-700 transition text-center';
-    if (tabRegister) tabRegister.className = 'flex-1 py-3 text-xs font-black text-emerald-700 border-b-2 border-emerald-600 transition text-center';
+    if (tabLogin) tabLogin.className = inactiveClass;
+    if (tabRegister) tabRegister.className = activeClass;
     if (formLogin) formLogin.classList.add('hidden');
     if (formRegister) formRegister.classList.remove('hidden');
   }
