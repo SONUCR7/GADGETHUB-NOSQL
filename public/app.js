@@ -810,6 +810,18 @@ function updateAuthUI() {
   const sideName = document.getElementById('sidebarUserName');
   const sideEmail = document.getElementById('sidebarUserEmail');
 
+  // Sidebar Deliveries & History elements
+  const sidebarOrdersBadge = document.getElementById('sidebarOrdersBadge');
+  const sidebarDeliveriesBadge = document.getElementById('sidebarDeliveriesBadge');
+  const sidebarDeliveriesSubtext = document.getElementById('sidebarDeliveriesSubtext');
+  const sidebarRecentOrderPreview = document.getElementById('sidebarRecentOrderPreview');
+  const sidebarRecentOrderId = document.getElementById('sidebarRecentOrderId');
+  const sidebarRecentOrderStatus = document.getElementById('sidebarRecentOrderStatus');
+  const sidebarRecentOrderDetails = document.getElementById('sidebarRecentOrderDetails');
+
+  const orders = (currentUser && currentUser.orders) ? currentUser.orders : [];
+  const orderCount = orders.length;
+
   if (currentUser && authToken) {
     // User is logged in
     if (openAuthBtn) openAuthBtn.classList.add('hidden');
@@ -829,6 +841,34 @@ function updateAuthUI() {
     if (sideName) sideName.textContent = currentUser.name;
     if (sideEmail) sideEmail.textContent = currentUser.email;
 
+    // Update order & deliveries indicators
+    if (sidebarOrdersBadge) sidebarOrdersBadge.textContent = orderCount;
+    if (sidebarDeliveriesBadge) sidebarDeliveriesBadge.textContent = `${orderCount} ${orderCount === 1 ? 'Order' : 'Orders'}`;
+
+    if (orderCount > 0) {
+      const latestOrder = orders[0];
+      if (sidebarDeliveriesSubtext) {
+        sidebarDeliveriesSubtext.textContent = `Latest: ${latestOrder.orderId} • ${latestOrder.status || 'In Transit'}`;
+      }
+      if (sidebarRecentOrderPreview) {
+        sidebarRecentOrderPreview.classList.remove('hidden');
+        if (sidebarRecentOrderId) sidebarRecentOrderId.textContent = latestOrder.orderId;
+        if (sidebarRecentOrderStatus) {
+          sidebarRecentOrderStatus.textContent = latestOrder.status || 'In Transit';
+          sidebarRecentOrderStatus.className = `px-1.5 py-0.2 rounded-full text-[9px] font-black ${
+            latestOrder.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+          }`;
+        }
+        if (sidebarRecentOrderDetails) {
+          const itemCount = (latestOrder.items || []).length;
+          sidebarRecentOrderDetails.textContent = `${itemCount} item(s) • ${formatCurrency(latestOrder.totalAmount)}`;
+        }
+      }
+    } else {
+      if (sidebarDeliveriesSubtext) sidebarDeliveriesSubtext.textContent = 'No orders yet • Shop and track deliveries';
+      if (sidebarRecentOrderPreview) sidebarRecentOrderPreview.classList.add('hidden');
+    }
+
     // Fill reviewer author name if currently empty
     const reviewAuthor = document.getElementById('reviewAuthor');
     if (reviewAuthor && !reviewAuthor.value) {
@@ -841,6 +881,21 @@ function updateAuthUI() {
 
     if (sideGuest) sideGuest.classList.remove('hidden');
     if (sideUser) sideUser.classList.add('hidden');
+
+    if (sidebarOrdersBadge) sidebarOrdersBadge.textContent = '0';
+    if (sidebarDeliveriesBadge) sidebarDeliveriesBadge.textContent = '0 Orders';
+    if (sidebarDeliveriesSubtext) sidebarDeliveriesSubtext.textContent = 'Sign in to track orders & live deliveries';
+    if (sidebarRecentOrderPreview) sidebarRecentOrderPreview.classList.add('hidden');
+  }
+}
+
+function handleSidebarDeliveriesClick() {
+  closeSidebar();
+  if (currentUser && authToken) {
+    openProfileModal('orders');
+  } else {
+    showToast('Please sign in to track your deliveries & view order history', 'info');
+    showGate('login');
   }
 }
 
@@ -988,9 +1043,10 @@ async function handleRegisterSubmit(e) {
   }
 }
 
-function openProfileModal() {
+function openProfileModal(tab = 'details') {
   if (!profileModal || !currentUser) {
-    openAuthModal('login');
+    showToast('Please sign in to view your profile and deliveries', 'info');
+    showGate('login');
     return;
   }
 
@@ -1014,7 +1070,7 @@ function openProfileModal() {
   // Populate Orders
   renderProfileOrders(currentUser.orders || []);
 
-  switchProfileTab('details');
+  switchProfileTab(tab);
   profileModal.classList.remove('hidden');
   profileModal.classList.add('flex');
 }
@@ -1054,9 +1110,14 @@ function renderProfileOrders(orders) {
   if (orders.length === 0) {
     container.innerHTML = `
       <div class="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200 text-slate-400">
-        <i class="fa-solid fa-box-open text-3xl mb-2 text-slate-300"></i>
-        <p class="font-bold text-slate-700 text-xs">No orders yet</p>
-        <p class="text-[11px] text-slate-400 mt-0.5">Explore gadgets and checkout to see your orders recorded here.</p>
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
+          <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+        <p class="font-extrabold text-slate-800 text-sm">No deliveries or orders yet</p>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Explore our 3D smart gadgets and complete checkout to see real-time delivery tracking and tax invoices here.</p>
+        <button onclick="closeProfileModal();" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
+          Browse Gadget Catalog
+        </button>
       </div>
     `;
     return;
@@ -1067,6 +1128,10 @@ function renderProfileOrders(orders) {
       currentLang === 'hi' ? 'hi-IN' : (currentLang === 'bn' ? 'bn-IN' : 'en-US'),
       { month: 'short', day: 'numeric', year: 'numeric' }
     );
+
+    const isDelivered = (o.status || '').toLowerCase() === 'delivered';
+    const isInTransit = (o.status || '').toLowerCase() === 'in transit' || (!isDelivered && (o.status || '').toLowerCase() !== 'cancelled');
+    const progressWidth = isDelivered ? '100%' : (isInTransit ? '70%' : '35%');
 
     const itemsHtml = (o.items || []).map((it) => `
       <div class="flex items-center gap-2.5 py-1.5 border-b border-slate-100 last:border-none">
@@ -1079,31 +1144,47 @@ function renderProfileOrders(orders) {
     `).join('');
 
     return `
-      <div class="p-4 bg-slate-50/80 rounded-2xl border border-slate-200 space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-200/60 text-xs">
-          <div>
-            <span class="font-black text-slate-900">${escapeHtml(o.orderId)}</span>
-            <span class="text-slate-400 text-[10px] ml-2">${formattedDate}</span>
+      <div class="p-4 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-3.5 shadow-sm">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200/70 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-black text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-box text-emerald-600"></i> ${escapeHtml(o.orderId)}
+            </span>
+            <span class="text-slate-400 text-[10px]">${formattedDate}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${o.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
-              ● ${o.status || 'Confirmed'}
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${isDelivered ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-cyan-100 text-cyan-800 border border-cyan-300'}">
+              <span class="inline-block w-1.5 h-1.5 rounded-full ${isDelivered ? 'bg-emerald-500' : 'bg-cyan-500 animate-pulse'} mr-1"></span>
+              ${o.status || 'In Transit'}
             </span>
             <span class="text-xs font-black text-slate-900">${formatCurrency(o.totalAmount)}</span>
           </div>
         </div>
 
-        <div class="divide-y divide-slate-100">
+        <!-- Live Delivery Stepper -->
+        <div class="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between text-[10px] font-bold mb-1.5 px-0.5">
+            <span class="text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> Confirmed</span>
+            <span class="text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-box-archive text-emerald-600"></i> Packed</span>
+            <span class="${isDelivered ? 'text-emerald-700' : 'text-cyan-700 font-extrabold'} flex items-center gap-1"><i class="fa-solid fa-truck-fast ${isDelivered ? '' : 'text-cyan-600 animate-bounce'}"></i> Out for Delivery</span>
+            <span class="${isDelivered ? 'text-emerald-700 font-extrabold' : 'text-slate-400'} flex items-center gap-1"><i class="fa-solid fa-house-chimney"></i> Delivered</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: ${progressWidth}"></div>
+          </div>
+        </div>
+
+        <div class="divide-y divide-slate-100 bg-white p-2.5 rounded-xl border border-slate-200/60">
           ${itemsHtml}
         </div>
 
-        <div class="pt-1 text-[11px] text-slate-500 flex items-center justify-between">
-          <span class="truncate max-w-[260px]"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${escapeHtml(o.shippingAddress || 'Home Address')}</span>
+        <div class="pt-1 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
+          <span class="truncate max-w-[240px] text-slate-600"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${escapeHtml(o.shippingAddress || 'Home Address')}</span>
           <div class="flex items-center gap-2">
             <button type="button" onclick="viewOrderInvoice('${escapeHtml(o.orderId)}')" class="px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg flex items-center gap-1 transition shadow-sm cursor-pointer">
               <i class="fa-solid fa-file-invoice text-emerald-600"></i> Tax Invoice
             </button>
-            <span class="text-emerald-700 font-bold hidden sm:inline"><i class="fa-solid fa-truck-fast mr-1"></i>Free Express</span>
+            <span class="text-emerald-700 font-bold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60"><i class="fa-solid fa-bolt mr-1"></i>Express Delivery</span>
           </div>
         </div>
       </div>
@@ -1685,6 +1766,7 @@ async function handleCheckout() {
         if (!currentUser.orders) currentUser.orders = [];
         currentUser.orders.unshift(data.data);
         localStorage.setItem('gadgethub_user', JSON.stringify(currentUser));
+        updateAuthUI();
         showToast(`🎉 Order ${data.data.orderId} Placed Successfully! (${formatCurrency(total)})`, 'success');
       }
     } catch (err) {

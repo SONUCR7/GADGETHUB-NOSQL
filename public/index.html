@@ -686,13 +686,65 @@
                 <p id="sidebarUserEmail" class="text-[10px] text-slate-400 truncate">user@example.com</p>
               </div>
             </div>
-            <div class="flex gap-2 pt-1">
-              <button onclick="closeSidebar(); openProfileModal();" class="flex-1 py-1.5 px-2 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition">
-                <i class="fa-solid fa-id-card text-emerald-600 mr-1"></i> <span id="i18n-sidebarMyProfile">Profile</span>
+            <div class="flex gap-1.5 pt-1">
+              <button onclick="closeSidebar(); openProfileModal('details');" class="flex-1 py-1.5 px-2 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex items-center justify-center gap-1 shadow-sm">
+                <i class="fa-solid fa-id-card text-emerald-600"></i> <span id="i18n-sidebarMyProfile">Profile</span>
+              </button>
+              <button onclick="closeSidebar(); openProfileModal('orders');" class="flex-1 py-1.5 px-2 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-lg transition flex items-center justify-center gap-1 shadow-sm" title="My Deliveries & Orders">
+                <i class="fa-solid fa-truck-fast text-emerald-600"></i>
+                <span>Orders</span>
+                <span id="sidebarOrdersBadge" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-600 text-white">0</span>
               </button>
               <button onclick="handleLogout()" class="py-1.5 px-2.5 text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition" title="Log Out">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dedicated My Deliveries & Order History Section -->
+        <div class="border-t border-slate-200 pt-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-truck-fast text-emerald-600 text-sm"></i>
+              <span>My Deliveries & History</span>
+            </span>
+            <span id="sidebarDeliveriesBadge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              0 Orders
+            </span>
+          </div>
+
+          <div class="space-y-2">
+            <button 
+              id="sidebarDeliveriesBtn"
+              onclick="handleSidebarDeliveriesClick()" 
+              class="w-full p-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-white hover:from-emerald-100 hover:to-teal-100/70 text-left transition group shadow-sm flex items-center justify-between cursor-pointer"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-sm shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                  <i class="fa-solid fa-box-open"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition flex items-center gap-1.5">
+                    <span>Track Live Deliveries</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  </div>
+                  <div id="sidebarDeliveriesSubtext" class="text-[11px] text-slate-500 font-medium">View active orders, shipping & tax invoices</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition text-xs"></i>
+            </button>
+
+            <!-- Quick Recent Order Preview (populated dynamically when logged in) -->
+            <div id="sidebarRecentOrderPreview" class="hidden p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+              <div class="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                <span class="flex items-center gap-1 text-emerald-700">
+                  <i class="fa-solid fa-circle-dot text-[8px] animate-ping"></i>
+                  <span id="sidebarRecentOrderId">ORD-782194</span>
+                </span>
+                <span id="sidebarRecentOrderStatus" class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-blue-100 text-blue-800">In Transit</span>
+              </div>
+              <p id="sidebarRecentOrderDetails" class="text-[10px] text-slate-500 truncate">1 item • Fast Express Delivery</p>
             </div>
           </div>
         </div>
@@ -1594,8 +1646,8 @@
             onclick="switchProfileTab('orders')" 
             class="pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition"
           >
-            <i class="fa-solid fa-bag-shopping"></i>
-            <span>My Orders (<span id="userOrdersCount">0</span>)</span>
+            <i class="fa-solid fa-truck-fast"></i>
+            <span>My Deliveries & History (<span id="userOrdersCount">0</span>)</span>
           </button>
         </div>
       </div>
