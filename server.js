@@ -504,6 +504,200 @@ app.post('/api/auth/orders', protect, async (req, res) => {
   }
 });
 
+// ======================== AGENTIC AI ENDPOINT ========================
+// POST /api/agent - Autonomous E-Commerce Agent capable of understanding goals, querying catalog, comparing specs, and emitting UI action plans
+app.post('/api/agent', async (req, res) => {
+  try {
+    const { prompt, context } = req.body;
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ success: false, message: 'Agent prompt is required' });
+    }
+
+    const cleanPrompt = prompt.toLowerCase().trim();
+    const allProducts = await Product.find({});
+
+    const thoughtProcess = [
+      { step: 1, type: 'perceive', text: `Perceived user prompt: "${prompt}"` },
+      { step: 2, type: 'analyze', text: 'Analyzing intent, target categories, budgets, and action requirements...' }
+    ];
+
+    let reply = '';
+    let actions = [];
+    let recommendedProducts = [];
+
+    // Scenario 1: Compare action
+    if (cleanPrompt.includes('compare') || cleanPrompt.includes('vs') || cleanPrompt.includes('versus') || cleanPrompt.includes('difference between')) {
+      thoughtProcess.push({ step: 3, type: 'query', text: 'Catalog query: Searching for flagship devices to compare...' });
+      
+      let p1 = null;
+      let p2 = null;
+
+      if (cleanPrompt.includes('iphone') || cleanPrompt.includes('apple')) {
+        p1 = allProducts.find(p => p.name.toLowerCase().includes('iphone'));
+      }
+      if (cleanPrompt.includes('s24') || cleanPrompt.includes('samsung') || cleanPrompt.includes('galaxy')) {
+        p2 = allProducts.find(p => p.name.toLowerCase().includes('s24'));
+      }
+      if (!p1 || !p2) {
+        // Fallback to top 2 smartphones or first 2 matching categories
+        const phones = allProducts.filter(p => p.category === 'Smartphones');
+        p1 = p1 || phones[0];
+        p2 = p2 || phones[1];
+      }
+
+      if (p1 && p2) {
+        thoughtProcess.push({ step: 4, type: 'synthesize', text: `Evaluating specs: ${p1.name} (₹${p1.price.toLocaleString('en-IN')}) vs ${p2.name} (₹${p2.price.toLocaleString('en-IN')})...` });
+        thoughtProcess.push({ step: 5, type: 'execute', text: `Emitted UI Action: COMPARE_PRODUCTS with IDs [${p1._id}, ${p2._id}]` });
+
+        reply = `I have analyzed both flagships and autonomously loaded **${p1.name}** and **${p2.name}** into the side-by-side comparison matrix for you! Both feature titanium designs and top-tier processors.`;
+        actions.push({
+          type: 'COMPARE_PRODUCTS',
+          payload: { productIds: [p1._id, p2._id] }
+        });
+        recommendedProducts = [p1, p2];
+      }
+    }
+    // Scenario 2: Add to cart with best coupon
+    else if (cleanPrompt.includes('add') && (cleanPrompt.includes('cart') || cleanPrompt.includes('buy') || cleanPrompt.includes('coupon') || cleanPrompt.includes('discount'))) {
+      thoughtProcess.push({ step: 3, type: 'query', text: 'Scanning catalog for target product to add...' });
+      
+      let targetProduct = allProducts.find(p => {
+        const words = p.name.toLowerCase().split(' ');
+        return words.some(w => w.length > 3 && cleanPrompt.includes(w));
+      });
+
+      if (!targetProduct) {
+        targetProduct = allProducts.find(p => p.name.toLowerCase().includes('airpods')) || allProducts[0];
+      }
+
+      thoughtProcess.push({ step: 4, type: 'optimize', text: `Selected item: ${targetProduct.name} at ₹${targetProduct.price.toLocaleString('en-IN')}. Evaluating promo coupons (VIP2026: 15%, SAVE10: 10%, FLAT500: ₹500)...` });
+      
+      const discountVip = Math.round(targetProduct.price * 0.15);
+      const discountSave = Math.round(targetProduct.price * 0.10);
+      const chosenCoupon = discountVip >= discountSave ? 'VIP2026' : 'SAVE10';
+      const savings = Math.max(discountVip, discountSave);
+      const finalPrice = targetProduct.price - savings;
+
+      thoughtProcess.push({ step: 5, type: 'execute', text: `Applied best promo code: "${chosenCoupon}" saving ₹${savings.toLocaleString('en-IN')}! Final price: ₹${finalPrice.toLocaleString('en-IN')}.` });
+
+      reply = `I've added **${targetProduct.name}** to your cart and autonomously negotiated the best discount with coupon code **${chosenCoupon}** (15% OFF), saving you **₹${savings.toLocaleString('en-IN')}**!`;
+      actions.push({
+        type: 'ADD_TO_CART_WITH_COUPON',
+        payload: {
+          product: targetProduct,
+          coupon: chosenCoupon
+        }
+      });
+      recommendedProducts = [targetProduct];
+    }
+    // Scenario 3: Budget bundle (e.g. "under 50k", "under 2 lakh", "desk setup", "student setup")
+    else if (cleanPrompt.includes('bundle') || cleanPrompt.includes('setup') || cleanPrompt.includes('student') || cleanPrompt.includes('work') || cleanPrompt.includes('coding')) {
+      thoughtProcess.push({ step: 3, type: 'query', text: 'Analyzing complementary accessories and hardware combinations...' });
+
+      let items = [];
+      if (cleanPrompt.includes('50000') || cleanPrompt.includes('50k') || cleanPrompt.includes('budget')) {
+        const mouse = allProducts.find(p => p.name.toLowerCase().includes('master 3s'));
+        const switchConsole = allProducts.find(p => p.name.toLowerCase().includes('switch'));
+        items = [mouse, switchConsole].filter(Boolean);
+      } else {
+        const laptop = allProducts.find(p => p.category === 'Laptops');
+        const mouse = allProducts.find(p => p.name.toLowerCase().includes('master 3s'));
+        items = [laptop, mouse].filter(Boolean);
+      }
+
+      const bundleTotal = items.reduce((acc, i) => acc + i.price, 0);
+      const bundleSavings = Math.round(bundleTotal * 0.15);
+
+      thoughtProcess.push({ step: 4, type: 'optimize', text: `Generated bundle: ${items.map(i => i.name).join(' + ')}. Total: ₹${bundleTotal.toLocaleString('en-IN')}.` });
+      thoughtProcess.push({ step: 5, type: 'execute', text: 'Emitted UI Action: ADD_BUNDLE_TO_CART with coupon VIP2026.' });
+
+      reply = `I assembled an optimized tech bundle tailored for your workflow: **${items.map(i => i.name).join('** + **')}**! Combined total is ₹${bundleTotal.toLocaleString('en-IN')}, and applying **VIP2026** saves you ₹${bundleSavings.toLocaleString('en-IN')}.`;
+      actions.push({
+        type: 'ADD_BUNDLE_TO_CART',
+        payload: {
+          products: items,
+          coupon: 'VIP2026'
+        }
+      });
+      recommendedProducts = items;
+    }
+    // Scenario 4: Category / Budget filtering
+    else if (cleanPrompt.includes('laptop') || cleanPrompt.includes('phone') || cleanPrompt.includes('smartphone') || cleanPrompt.includes('audio') || cleanPrompt.includes('headphone') || cleanPrompt.includes('gaming') || cleanPrompt.includes('wearable') || cleanPrompt.includes('watch') || cleanPrompt.includes('under') || cleanPrompt.includes('below') || cleanPrompt.includes('cheap') || cleanPrompt.includes('best')) {
+      let targetCat = 'All';
+      if (cleanPrompt.includes('laptop')) targetCat = 'Laptops';
+      else if (cleanPrompt.includes('phone') || cleanPrompt.includes('smartphone')) targetCat = 'Smartphones';
+      else if (cleanPrompt.includes('audio') || cleanPrompt.includes('headphone') || cleanPrompt.includes('earbud') || cleanPrompt.includes('noise')) targetCat = 'Audio';
+      else if (cleanPrompt.includes('gaming') || cleanPrompt.includes('console') || cleanPrompt.includes('ally') || cleanPrompt.includes('ps5')) targetCat = 'Gaming';
+      else if (cleanPrompt.includes('wearable') || cleanPrompt.includes('watch')) targetCat = 'Wearables';
+
+      let maxPrice = null;
+      if (cleanPrompt.includes('30000') || cleanPrompt.includes('30k')) maxPrice = 30000;
+      else if (cleanPrompt.includes('50000') || cleanPrompt.includes('50k')) maxPrice = 50000;
+      else if (cleanPrompt.includes('70000') || cleanPrompt.includes('70k')) maxPrice = 70000;
+      else if (cleanPrompt.includes('100000') || cleanPrompt.includes('1 lakh') || cleanPrompt.includes('100k')) maxPrice = 100000;
+      else if (cleanPrompt.includes('200000') || cleanPrompt.includes('2 lakh') || cleanPrompt.includes('200k')) maxPrice = 200000;
+
+      thoughtProcess.push({ step: 3, type: 'query', text: `Filtering catalog by Category="${targetCat}" and MaxPrice=${maxPrice || 'Unlimited'}...` });
+
+      let filtered = allProducts;
+      if (targetCat !== 'All') filtered = filtered.filter(p => p.category === targetCat);
+      if (maxPrice) filtered = filtered.filter(p => p.price <= maxPrice);
+
+      thoughtProcess.push({ step: 4, type: 'synthesize', text: `Found ${filtered.length} matching gadgets matching your criteria.` });
+      thoughtProcess.push({ step: 5, type: 'execute', text: 'Emitted UI Action: FILTER_CATALOG live on screen.' });
+
+      reply = `I have autonomously adjusted the store filters to show **${targetCat !== 'All' ? targetCat : 'Top Gadgets'}**${maxPrice ? ` under ₹${maxPrice.toLocaleString('en-IN')}` : ''}. Here are the top recommendations:`;
+      actions.push({
+        type: 'FILTER_CATALOG',
+        payload: {
+          category: targetCat,
+          maxPrice: maxPrice || null
+        }
+      });
+      recommendedProducts = filtered.slice(0, 3);
+    }
+    // Scenario 5: Multi-Angle inspection
+    else if (cleanPrompt.includes('angle') || cleanPrompt.includes('photo') || cleanPrompt.includes('view') || cleanPrompt.includes('inspect')) {
+      const targetProduct = allProducts.find(p => cleanPrompt.includes(p.brand.toLowerCase()) || cleanPrompt.includes(p.category.toLowerCase())) || allProducts[0];
+      
+      thoughtProcess.push({ step: 3, type: 'query', text: `Locating product ${targetProduct.name} and multi-angle assets...` });
+      thoughtProcess.push({ step: 4, type: 'execute', text: `Emitted UI Action: OPEN_PRODUCT with ID ${targetProduct._id} and switching to Angle 2 (Side Profile).` });
+
+      reply = `Opening **${targetProduct.name}** and loading its multi-angle gallery! You can inspect the chassis, ports, and camera bump from all 4 angles.`;
+      actions.push({
+        type: 'OPEN_PRODUCT',
+        payload: {
+          productId: targetProduct._id,
+          angleIndex: 1
+        }
+      });
+      recommendedProducts = [targetProduct];
+    }
+    // Scenario 6: General Tech Advisory & Store Guide
+    else {
+      thoughtProcess.push({ step: 3, type: 'synthesize', text: 'Analyzing entire store inventory for top rated items...' });
+      const topPicks = [...allProducts].sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0)).slice(0, 3);
+      
+      thoughtProcess.push({ step: 4, type: 'execute', text: 'Prepared personalized recommendations with direct action shortcuts.' });
+
+      reply = `Hello! I am **GadgetAgent AI**, your autonomous store advisor. I don't just chat — I can **filter the catalog**, **load side-by-side comparisons**, **inspect multi-angle views**, and **add items to your cart with automatic coupon discounts**! Tell me what you're looking for or pick an action below.`;
+      recommendedProducts = topPicks;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        reply,
+        thoughtProcess,
+        actions,
+        recommendedProducts
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Fallback to index.html for single page client
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

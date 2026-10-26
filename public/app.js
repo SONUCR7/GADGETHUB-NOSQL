@@ -2705,3 +2705,406 @@ function closeInvoiceModal() {
     modal.classList.remove('flex');
   }
 }
+
+// ======================== 9. AGENTIC AI COPILOT SYSTEM ========================
+let agentChatHistory = [];
+let isAgentThinking = false;
+
+function toggleAgentDrawer(show) {
+  const drawer = document.getElementById('agentDrawer');
+  const backdrop = document.getElementById('agentDrawerBackdrop');
+  if (!drawer) return;
+
+  if (show) {
+    drawer.classList.remove('translate-x-full');
+    backdrop.classList.remove('hidden');
+    // Initialize welcome message if empty
+    if (agentChatHistory.length === 0) {
+      renderAgentWelcomeMessage();
+    }
+    const input = document.getElementById('agentInputText');
+    if (input) setTimeout(() => input.focus(), 300);
+  } else {
+    drawer.classList.add('translate-x-full');
+    backdrop.classList.add('hidden');
+  }
+}
+
+function renderAgentWelcomeMessage() {
+  const container = document.getElementById('agentMessagesContainer');
+  if (!container) return;
+
+  const welcomeHtml = `
+    <div class="agent-msg-box flex gap-3 text-xs leading-relaxed">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-cyan-400 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <div class="flex-1 space-y-2">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-slate-900 text-xs flex items-center gap-1.5">
+              GadgetAgent AI
+              <span class="text-[9px] uppercase px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded font-black">Autonomous</span>
+            </span>
+            <span class="text-[10px] text-slate-400">Action Copilot</span>
+          </div>
+          <p class="text-slate-600">
+            Hello! I am your <strong>Agentic AI Copilot</strong>. Unlike standard chatbots, I have <strong>autonomous tool-use capabilities</strong> to execute live actions across this store on your behalf:
+          </p>
+          <div class="grid grid-cols-2 gap-2 text-[11px]">
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5 font-bold text-slate-700">
+              <i class="fa-solid fa-code-compare text-indigo-500"></i> Compare Top Specs
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5 font-bold text-slate-700">
+              <i class="fa-solid fa-tags text-emerald-500"></i> Negotiate Best Coupon
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5 font-bold text-slate-700">
+              <i class="fa-solid fa-camera text-cyan-500"></i> Multi-Angle Inspector
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5 font-bold text-slate-700">
+              <i class="fa-solid fa-cart-arrow-down text-purple-500"></i> Smart Cart Bundles
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-500">
+            Click any shortcut below or ask me in plain English!
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = welcomeHtml;
+}
+
+function clearAgentChat() {
+  agentChatHistory = [];
+  renderAgentWelcomeMessage();
+  showToast('Agent chat history cleared', 'info');
+}
+
+function triggerQuickAgentGoal(promptText) {
+  const input = document.getElementById('agentInputText');
+  if (input) input.value = promptText;
+  handleAgentFormSubmit(new Event('submit'));
+}
+
+async function handleAgentFormSubmit(e) {
+  if (e) e.preventDefault();
+  if (isAgentThinking) return;
+
+  const input = document.getElementById('agentInputText');
+  if (!input) return;
+
+  const prompt = input.value.trim();
+  if (!prompt) return;
+
+  input.value = '';
+  appendUserAgentMessage(prompt);
+
+  await executeAgentQuery(prompt);
+}
+
+function appendUserAgentMessage(text) {
+  const container = document.getElementById('agentMessagesContainer');
+  if (!container) return;
+
+  const userHtml = `
+    <div class="flex justify-end gap-2.5 text-xs">
+      <div class="bg-gradient-to-r from-violet-600 to-indigo-600 text-white p-3 rounded-2xl rounded-tr-xs shadow-sm max-w-[85%] font-medium">
+        ${escapeHtml(text)}
+      </div>
+      <div class="w-7 h-7 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold shrink-0 text-xs">
+        <i class="fa-solid fa-user"></i>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', userHtml);
+  container.scrollTop = container.scrollHeight;
+}
+
+async function executeAgentQuery(prompt) {
+  isAgentThinking = true;
+  const container = document.getElementById('agentMessagesContainer');
+
+  // Render thinking indicator with pulsating agent radar
+  const thinkingId = 'agentThinking_' + Date.now();
+  const thinkingHtml = `
+    <div id="${thinkingId}" class="flex gap-3 text-xs">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-cyan-400 text-white flex items-center justify-center font-bold shrink-0 animate-pulse">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+      <div class="bg-white p-3.5 rounded-2xl border border-indigo-200 shadow-sm flex items-center gap-2.5 text-indigo-900 font-bold">
+        <div class="w-2 h-2 rounded-full bg-indigo-600 animate-ping"></div>
+        <span>Agent synthesizing plan & querying catalog...</span>
+      </div>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', thinkingHtml);
+  container.scrollTop = container.scrollHeight;
+
+  try {
+    const res = await fetch('/api/agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        context: {
+          cartCount: cart.length,
+          comparedCount: compareList.length
+        }
+      })
+    });
+
+    const data = await res.json();
+    const thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.remove();
+
+    if (data.success && data.data) {
+      renderAgentResponse(data.data);
+      if (data.data.actions && data.data.actions.length > 0) {
+        executeAgentAutonomousActions(data.data.actions);
+      }
+    } else {
+      renderAgentFallbackResponse(prompt);
+    }
+  } catch (err) {
+    console.warn('Agent API fallback:', err);
+    const thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.remove();
+    renderAgentFallbackResponse(prompt);
+  } finally {
+    isAgentThinking = false;
+  }
+}
+
+function renderAgentResponse(agentData) {
+  const container = document.getElementById('agentMessagesContainer');
+  if (!container) return;
+
+  const { reply, thoughtProcess, actions, recommendedProducts } = agentData;
+
+  // Build Thought Trace HTML
+  let thoughtTraceHtml = '';
+  if (thoughtProcess && thoughtProcess.length > 0) {
+    const stepsHtml = thoughtProcess.map(t => {
+      let icon = 'fa-arrow-right';
+      let colorClass = 'text-slate-400';
+      if (t.type === 'execute') {
+        icon = 'fa-bolt';
+        colorClass = 'text-emerald-400 font-bold';
+      } else if (t.type === 'query') {
+        icon = 'fa-database';
+        colorClass = 'text-cyan-400';
+      } else if (t.type === 'optimize') {
+        icon = 'fa-tags';
+        colorClass = 'text-amber-400';
+      }
+      return `<p class="${colorClass} flex items-start gap-1.5"><i class="fa-solid ${icon} text-[10px] mt-0.5 shrink-0"></i><span>${escapeHtml(t.text)}</span></p>`;
+    }).join('');
+
+    thoughtTraceHtml = `
+      <div class="bg-slate-950 text-slate-200 rounded-xl p-3 text-[11px] font-mono border border-slate-800 shadow-inner space-y-1.5">
+        <div class="flex items-center justify-between text-indigo-400 font-bold border-b border-slate-800 pb-1 text-[10px]">
+          <span class="flex items-center gap-1.5">
+            <i class="fa-solid fa-brain text-amber-400"></i>
+            Agent Thought & Execution Trace
+          </span>
+          <span class="px-1.5 py-0.2 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-400 font-bold">
+            ${(actions || []).length} Action${(actions || []).length === 1 ? '' : 's'}
+          </span>
+        </div>
+        <div class="space-y-1 pt-1">
+          ${stepsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // Build Recommended Product Cards
+  let productCardsHtml = '';
+  if (recommendedProducts && recommendedProducts.length > 0) {
+    productCardsHtml = `
+      <div class="space-y-2 pt-1">
+        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Targeted Gadgets:</p>
+        <div class="space-y-2">
+          ${recommendedProducts.map(p => `
+            <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-3 hover:border-indigo-300 transition">
+              <img src="${p.imageUrl}" alt="${escapeHtml(p.name)}" class="w-12 h-12 object-contain rounded-lg bg-slate-50 p-1 shrink-0 border border-slate-100">
+              <div class="min-w-0 flex-1">
+                <h5 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(p.name)}</h5>
+                <p class="text-[11px] font-black text-emerald-700 mt-0.5">${formatCurrency(p.price)}</p>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button onclick="viewProductDetails('${p._id}')" class="px-2 py-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition" title="Inspect Angles">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button onclick="addToCart('${p._id}')" class="px-2.5 py-1 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg shadow-sm transition" title="Add to Cart">
+                  <i class="fa-solid fa-cart-plus"></i>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  const agentHtml = `
+    <div class="agent-msg-box flex gap-3 text-xs leading-relaxed">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-cyan-400 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      <div class="flex-1 space-y-2.5">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
+          ${thoughtTraceHtml}
+          <div class="text-slate-800 leading-normal space-y-1">
+            ${reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+          </div>
+          ${productCardsHtml}
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', agentHtml);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Client-side Autonomous Action Dispatcher
+function executeAgentAutonomousActions(actions) {
+  if (!actions || !Array.isArray(actions)) return;
+
+  actions.forEach(action => {
+    switch (action.type) {
+      case 'FILTER_CATALOG': {
+        const { category, maxPrice } = action.payload;
+        if (category) {
+          selectCategory(category);
+        }
+
+        if (maxPrice !== undefined && maxPrice !== null) {
+          const priceSelect = document.getElementById('priceFilterSelect');
+          if (priceSelect) {
+            if (maxPrice <= 30000) activePriceRange = 'under30k';
+            else if (maxPrice <= 100000) activePriceRange = '30kTo100k';
+            else activePriceRange = 'all';
+            priceSelect.value = activePriceRange;
+          }
+          loadProducts();
+        }
+
+        const grid = document.getElementById('productsContainer');
+        if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast(`🤖 GadgetAgent: Filtered catalog to ${category || 'Top Picks'}!`, 'info');
+        break;
+      }
+
+      case 'COMPARE_PRODUCTS': {
+        const { productIds } = action.payload;
+        if (productIds && productIds.length >= 2) {
+          compareList = productIds.slice(0, 2);
+          updateCompareDock();
+          setTimeout(() => {
+            openCompareModal();
+          }, 400);
+          showToast('🤖 GadgetAgent: Loaded Side-by-Side Comparison Matrix!', 'success');
+        }
+        break;
+      }
+
+      case 'OPEN_PRODUCT': {
+        const { productId, angleIndex } = action.payload;
+        if (productId) {
+          viewProductDetails(productId);
+          if (angleIndex !== undefined) {
+            setTimeout(() => {
+              switchModalProductImage(angleIndex);
+            }, 500);
+          }
+          showToast('🤖 GadgetAgent: Focused Product Gallery & Angles!', 'info');
+        }
+        break;
+      }
+
+      case 'ADD_TO_CART_WITH_COUPON': {
+        const { product, coupon } = action.payload;
+        if (product) {
+          addToCart(product._id);
+          if (coupon) {
+            appliedCoupon = coupon;
+            saveCart();
+            renderCart();
+          }
+          setTimeout(() => {
+            toggleCartDrawer(true);
+          }, 400);
+          showToast(`🤖 GadgetAgent: Added to cart with coupon ${coupon}!`, 'success');
+        }
+        break;
+      }
+
+      case 'ADD_BUNDLE_TO_CART': {
+        const { products, coupon } = action.payload;
+        if (products && Array.isArray(products)) {
+          products.forEach(p => addToCart(p._id));
+          if (coupon) {
+            appliedCoupon = coupon;
+            saveCart();
+            renderCart();
+          }
+          setTimeout(() => {
+            toggleCartDrawer(true);
+          }, 400);
+          showToast(`🤖 GadgetAgent: Added bundle with coupon ${coupon}!`, 'success');
+        }
+        break;
+      }
+
+      default:
+        console.log('Unknown agent action:', action);
+    }
+  });
+}
+
+// Client-side fallback if offline
+function renderAgentFallbackResponse(prompt) {
+  const p = prompt.toLowerCase();
+  let fallbackReply = `I have received your goal: "${prompt}". You can explore our catalog, compare gadgets side-by-side, or use the quick action shortcuts below!`;
+  let samplePicks = currentProducts.slice(0, 2);
+
+  if (p.includes('compare') || p.includes('vs')) {
+    const phones = currentProducts.filter(x => x.category === 'Smartphones');
+    if (phones.length >= 2) {
+      executeAgentAutonomousActions([{
+        type: 'COMPARE_PRODUCTS',
+        payload: { productIds: [phones[0]._id, phones[1]._id] }
+      }]);
+      fallbackReply = `I autonomously loaded **${phones[0].name}** and **${phones[1].name}** into the comparison matrix!`;
+      samplePicks = [phones[0], phones[1]];
+    }
+  } else if (p.includes('cart') || p.includes('coupon') || p.includes('add')) {
+    const pick = currentProducts[0] || { _id: '1', name: 'AirPods Pro', price: 24900, imageUrl: '' };
+    executeAgentAutonomousActions([{
+      type: 'ADD_TO_CART_WITH_COUPON',
+      payload: { product: pick, coupon: 'VIP2026' }
+    }]);
+    fallbackReply = `Added **${pick.name}** to your cart with VIP coupon **VIP2026** (15% OFF)!`;
+    samplePicks = [pick];
+  }
+
+  renderAgentResponse({
+    reply: fallbackReply,
+    thoughtProcess: [
+      { step: 1, type: 'perceive', text: `Perceived: "${prompt}"` },
+      { step: 2, type: 'execute', text: 'Executing local autonomous agent dispatch...' }
+    ],
+    actions: [],
+    recommendedProducts: samplePicks
+  });
+}
+
+window.toggleAgentDrawer = toggleAgentDrawer;
+window.clearAgentChat = clearAgentChat;
+window.triggerQuickAgentGoal = triggerQuickAgentGoal;
+window.handleAgentFormSubmit = handleAgentFormSubmit;
