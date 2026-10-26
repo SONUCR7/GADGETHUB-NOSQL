@@ -810,14 +810,15 @@ function updateAuthUI() {
   const sideName = document.getElementById('sidebarUserName');
   const sideEmail = document.getElementById('sidebarUserEmail');
 
-  // Sidebar Deliveries & History elements
-  const sidebarOrdersBadge = document.getElementById('sidebarOrdersBadge');
-  const sidebarDeliveriesBadge = document.getElementById('sidebarDeliveriesBadge');
+  // Sidebar MY ORDERS & DELIVERIES elements
+  const sidebarOrdersBadgeCount = document.getElementById('sidebarOrdersBadgeCount');
+  const sidebarOrdersSubtext = document.getElementById('sidebarOrdersSubtext');
+  const sidebarDeliveriesStatusBadge = document.getElementById('sidebarDeliveriesStatusBadge');
   const sidebarDeliveriesSubtext = document.getElementById('sidebarDeliveriesSubtext');
-  const sidebarRecentOrderPreview = document.getElementById('sidebarRecentOrderPreview');
-  const sidebarRecentOrderId = document.getElementById('sidebarRecentOrderId');
-  const sidebarRecentOrderStatus = document.getElementById('sidebarRecentOrderStatus');
-  const sidebarRecentOrderDetails = document.getElementById('sidebarRecentOrderDetails');
+  const sidebarRecentDeliveryPreview = document.getElementById('sidebarRecentDeliveryPreview');
+  const sidebarDeliveryOrderId = document.getElementById('sidebarDeliveryOrderId');
+  const sidebarDeliveryStatus = document.getElementById('sidebarDeliveryStatus');
+  const sidebarDeliveryProgressBar = document.getElementById('sidebarDeliveryProgressBar');
 
   const orders = (currentUser && currentUser.orders) ? currentUser.orders : [];
   const orderCount = orders.length;
@@ -841,32 +842,48 @@ function updateAuthUI() {
     if (sideName) sideName.textContent = currentUser.name;
     if (sideEmail) sideEmail.textContent = currentUser.email;
 
-    // Update order & deliveries indicators
-    if (sidebarOrdersBadge) sidebarOrdersBadge.textContent = orderCount;
-    if (sidebarDeliveriesBadge) sidebarDeliveriesBadge.textContent = `${orderCount} ${orderCount === 1 ? 'Order' : 'Orders'}`;
+    // MY ORDERS Section update
+    if (sidebarOrdersBadgeCount) {
+      sidebarOrdersBadgeCount.textContent = `${orderCount} ${orderCount === 1 ? 'Order' : 'Orders'}`;
+    }
+    if (sidebarOrdersSubtext) {
+      sidebarOrdersSubtext.textContent = orderCount > 0 
+        ? `${orderCount} past order(s) placed • Invoices ready` 
+        : 'Invoices, billing & past orders';
+    }
 
+    // DELIVERIES Section update
     if (orderCount > 0) {
-      const latestOrder = orders[0];
-      if (sidebarDeliveriesSubtext) {
-        sidebarDeliveriesSubtext.textContent = `Latest: ${latestOrder.orderId} • ${latestOrder.status || 'In Transit'}`;
+      const activeDelivery = orders[0];
+      const isDelivered = (activeDelivery.status || '').toLowerCase() === 'delivered';
+      const progressWidth = isDelivered ? '100%' : '70%';
+
+      if (sidebarDeliveriesStatusBadge) {
+        sidebarDeliveriesStatusBadge.textContent = isDelivered ? 'Delivered' : 'In Transit';
+        sidebarDeliveriesStatusBadge.className = `text-[10px] font-black px-2 py-0.5 rounded-full ${
+          isDelivered ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-cyan-100 text-cyan-800 border border-cyan-200'
+        }`;
       }
-      if (sidebarRecentOrderPreview) {
-        sidebarRecentOrderPreview.classList.remove('hidden');
-        if (sidebarRecentOrderId) sidebarRecentOrderId.textContent = latestOrder.orderId;
-        if (sidebarRecentOrderStatus) {
-          sidebarRecentOrderStatus.textContent = latestOrder.status || 'In Transit';
-          sidebarRecentOrderStatus.className = `px-1.5 py-0.2 rounded-full text-[9px] font-black ${
-            latestOrder.status === 'Delivered' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+      if (sidebarDeliveriesSubtext) {
+        sidebarDeliveriesSubtext.textContent = `Shipment ${activeDelivery.orderId} • ${activeDelivery.status || 'In Transit'}`;
+      }
+      if (sidebarRecentDeliveryPreview) {
+        sidebarRecentDeliveryPreview.classList.remove('hidden');
+        if (sidebarDeliveryOrderId) sidebarDeliveryOrderId.textContent = activeDelivery.orderId;
+        if (sidebarDeliveryStatus) {
+          sidebarDeliveryStatus.textContent = activeDelivery.status || 'In Transit';
+          sidebarDeliveryStatus.className = `px-2 py-0.5 rounded-full text-[9px] font-black ${
+            isDelivered ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-200/90 text-cyan-900'
           }`;
         }
-        if (sidebarRecentOrderDetails) {
-          const itemCount = (latestOrder.items || []).length;
-          sidebarRecentOrderDetails.textContent = `${itemCount} item(s) • ${formatCurrency(latestOrder.totalAmount)}`;
+        if (sidebarDeliveryProgressBar) {
+          sidebarDeliveryProgressBar.style.width = progressWidth;
         }
       }
     } else {
-      if (sidebarDeliveriesSubtext) sidebarDeliveriesSubtext.textContent = 'No orders yet • Shop and track deliveries';
-      if (sidebarRecentOrderPreview) sidebarRecentOrderPreview.classList.add('hidden');
+      if (sidebarDeliveriesStatusBadge) sidebarDeliveriesStatusBadge.textContent = 'No Shipments';
+      if (sidebarDeliveriesSubtext) sidebarDeliveriesSubtext.textContent = 'Real-time package transit & ETA';
+      if (sidebarRecentDeliveryPreview) sidebarRecentDeliveryPreview.classList.add('hidden');
     }
 
     // Fill reviewer author name if currently empty
@@ -882,19 +899,30 @@ function updateAuthUI() {
     if (sideGuest) sideGuest.classList.remove('hidden');
     if (sideUser) sideUser.classList.add('hidden');
 
-    if (sidebarOrdersBadge) sidebarOrdersBadge.textContent = '0';
-    if (sidebarDeliveriesBadge) sidebarDeliveriesBadge.textContent = '0 Orders';
-    if (sidebarDeliveriesSubtext) sidebarDeliveriesSubtext.textContent = 'Sign in to track orders & live deliveries';
-    if (sidebarRecentOrderPreview) sidebarRecentOrderPreview.classList.add('hidden');
+    if (sidebarOrdersBadgeCount) sidebarOrdersBadgeCount.textContent = '0 Orders';
+    if (sidebarOrdersSubtext) sidebarOrdersSubtext.textContent = 'Sign in to view past invoices & orders';
+    if (sidebarDeliveriesStatusBadge) sidebarDeliveriesStatusBadge.textContent = 'Sign In';
+    if (sidebarDeliveriesSubtext) sidebarDeliveriesSubtext.textContent = 'Sign in to track real-time shipments';
+    if (sidebarRecentDeliveryPreview) sidebarRecentDeliveryPreview.classList.add('hidden');
+  }
+}
+
+function handleSidebarOrdersClick() {
+  closeSidebar();
+  if (currentUser && authToken) {
+    openProfileModal('orders');
+  } else {
+    showToast('Please sign in to view your orders', 'info');
+    showGate('login');
   }
 }
 
 function handleSidebarDeliveriesClick() {
   closeSidebar();
   if (currentUser && authToken) {
-    openProfileModal('orders');
+    openProfileModal('deliveries');
   } else {
-    showToast('Please sign in to track your deliveries & view order history', 'info');
+    showToast('Please sign in to track live deliveries', 'info');
     showGate('login');
   }
 }
@@ -1002,7 +1030,8 @@ async function handleRegisterSubmit(e) {
   e.preventDefault();
   const name = document.getElementById('registerName').value.trim();
   const email = document.getElementById('registerEmail').value.trim();
-  const phone = document.getElementById('registerPhone').value.trim();
+  const phoneInput = document.getElementById('registerPhone');
+  const phone = phoneInput ? phoneInput.value.trim() : '';
   const password = document.getElementById('registerPassword').value.trim();
   const address = document.getElementById('registerAddress').value.trim();
 
@@ -1063,11 +1092,12 @@ function openProfileModal(tab = 'details') {
   // Populate Edit Fields
   document.getElementById('profileInputName').value = currentUser.name || '';
   document.getElementById('profileInputEmail').value = currentUser.email || '';
-  document.getElementById('profileInputPhone').value = currentUser.phone || '';
+  const phoneInput = document.getElementById('profileInputPhone');
+  if (phoneInput) phoneInput.value = currentUser.phone || '';
   document.getElementById('profileInputAddress').value = currentUser.address || '';
   document.getElementById('profileInputPassword').value = '';
 
-  // Populate Orders
+  // Populate Orders and Deliveries
   renderProfileOrders(currentUser.orders || []);
 
   switchProfileTab(tab);
@@ -1084,112 +1114,208 @@ function closeProfileModal() {
 function switchProfileTab(tab) {
   const tabDetailsBtn = document.getElementById('tabProfileDetailsBtn');
   const tabOrdersBtn = document.getElementById('tabProfileOrdersBtn');
+  const tabDeliveriesBtn = document.getElementById('tabProfileDeliveriesBtn');
+
   const detailsPanel = document.getElementById('profileDetailsPanel');
   const ordersPanel = document.getElementById('profileOrdersPanel');
+  const deliveriesPanel = document.getElementById('profileDeliveriesPanel');
+
+  const activeClass = 'pb-2.5 border-b-2 border-emerald-400 text-white flex items-center gap-1.5 transition';
+  const inactiveClass = 'pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition';
 
   if (tab === 'details') {
-    if (tabDetailsBtn) tabDetailsBtn.className = 'pb-2.5 border-b-2 border-emerald-400 text-white flex items-center gap-1.5 transition';
-    if (tabOrdersBtn) tabOrdersBtn.className = 'pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition';
+    if (tabDetailsBtn) tabDetailsBtn.className = activeClass;
+    if (tabOrdersBtn) tabOrdersBtn.className = inactiveClass;
+    if (tabDeliveriesBtn) tabDeliveriesBtn.className = inactiveClass;
+
     if (detailsPanel) detailsPanel.classList.remove('hidden');
     if (ordersPanel) ordersPanel.classList.add('hidden');
-  } else {
-    if (tabDetailsBtn) tabDetailsBtn.className = 'pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition';
-    if (tabOrdersBtn) tabOrdersBtn.className = 'pb-2.5 border-b-2 border-emerald-400 text-white flex items-center gap-1.5 transition';
+    if (deliveriesPanel) deliveriesPanel.classList.add('hidden');
+  } else if (tab === 'orders') {
+    if (tabDetailsBtn) tabDetailsBtn.className = inactiveClass;
+    if (tabOrdersBtn) tabOrdersBtn.className = activeClass;
+    if (tabDeliveriesBtn) tabDeliveriesBtn.className = inactiveClass;
+
     if (detailsPanel) detailsPanel.classList.add('hidden');
     if (ordersPanel) ordersPanel.classList.remove('hidden');
+    if (deliveriesPanel) deliveriesPanel.classList.add('hidden');
+  } else {
+    // Deliveries tab
+    if (tabDetailsBtn) tabDetailsBtn.className = inactiveClass;
+    if (tabOrdersBtn) tabOrdersBtn.className = inactiveClass;
+    if (tabDeliveriesBtn) tabDeliveriesBtn.className = activeClass;
+
+    if (detailsPanel) detailsPanel.classList.add('hidden');
+    if (ordersPanel) ordersPanel.classList.add('hidden');
+    if (deliveriesPanel) deliveriesPanel.classList.remove('hidden');
   }
 }
 
 function renderProfileOrders(orders) {
-  const container = document.getElementById('userOrdersListContainer');
-  const countBadge = document.getElementById('userOrdersCount');
-  if (countBadge) countBadge.textContent = formatNumber(orders.length);
+  const ordersContainer = document.getElementById('userOrdersListContainer');
+  const deliveriesContainer = document.getElementById('userDeliveriesListContainer');
+  const ordersCountBadge = document.getElementById('userOrdersCount');
+  const deliveriesCountBadge = document.getElementById('userDeliveriesCount');
 
-  if (!container) return;
+  if (ordersCountBadge) ordersCountBadge.textContent = formatNumber(orders.length);
+  if (deliveriesCountBadge) deliveriesCountBadge.textContent = formatNumber(orders.length);
 
+  // 1. EMPTY STATE
   if (orders.length === 0) {
-    container.innerHTML = `
+    const emptyHtml = `
       <div class="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200 text-slate-400">
         <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
-          <i class="fa-solid fa-truck-ramp-box"></i>
+          <i class="fa-solid fa-box-open"></i>
         </div>
-        <p class="font-extrabold text-slate-800 text-sm">No deliveries or orders yet</p>
-        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Explore our 3D smart gadgets and complete checkout to see real-time delivery tracking and tax invoices here.</p>
+        <p class="font-extrabold text-slate-800 text-sm">No orders recorded yet</p>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Explore our 3D smart gadgets catalog and place an order to see your invoices and order receipts here.</p>
         <button onclick="closeProfileModal();" class="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
-          Browse Gadget Catalog
+          Browse Gadgets
         </button>
       </div>
     `;
+    const emptyDeliveriesHtml = `
+      <div class="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200 text-slate-400">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl shadow-inner">
+          <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+        <p class="font-extrabold text-slate-800 text-sm">No active shipments in transit</p>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">When you purchase a gadget, real-time express tracking, courier coordinates, and delivery milestones appear here.</p>
+        <button onclick="closeProfileModal();" class="mt-4 px-4 py-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition cursor-pointer">
+          Shop Trending Gadgets
+        </button>
+      </div>
+    `;
+    if (ordersContainer) ordersContainer.innerHTML = emptyHtml;
+    if (deliveriesContainer) deliveriesContainer.innerHTML = emptyDeliveriesHtml;
     return;
   }
 
-  container.innerHTML = orders.map((o) => {
-    const formattedDate = new Date(o.createdAt || Date.now()).toLocaleDateString(
-      currentLang === 'hi' ? 'hi-IN' : (currentLang === 'bn' ? 'bn-IN' : 'en-US'),
-      { month: 'short', day: 'numeric', year: 'numeric' }
-    );
+  // 2. RENDER MY ORDERS (Focus on receipt, purchase items, tax invoice, billing)
+  if (ordersContainer) {
+    ordersContainer.innerHTML = orders.map((o) => {
+      const formattedDate = new Date(o.createdAt || Date.now()).toLocaleDateString(
+        currentLang === 'hi' ? 'hi-IN' : (currentLang === 'bn' ? 'bn-IN' : 'en-US'),
+        { month: 'short', day: 'numeric', year: 'numeric' }
+      );
 
-    const isDelivered = (o.status || '').toLowerCase() === 'delivered';
-    const isInTransit = (o.status || '').toLowerCase() === 'in transit' || (!isDelivered && (o.status || '').toLowerCase() !== 'cancelled');
-    const progressWidth = isDelivered ? '100%' : (isInTransit ? '70%' : '35%');
-
-    const itemsHtml = (o.items || []).map((it) => `
-      <div class="flex items-center gap-2.5 py-1.5 border-b border-slate-100 last:border-none">
-        <img src="${it.imageUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=100'}" class="w-10 h-10 object-cover rounded-lg border border-slate-200">
-        <div class="flex-1 min-w-0">
-          <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(it.name)}</p>
-          <span class="text-[10px] text-slate-400">Qty: ${it.quantity} • ${formatCurrency(it.price)} each</span>
-        </div>
-      </div>
-    `).join('');
-
-    return `
-      <div class="p-4 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-3.5 shadow-sm">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-200/70 text-xs">
-          <div class="flex items-center gap-2">
-            <span class="font-black text-slate-900 flex items-center gap-1.5">
-              <i class="fa-solid fa-box text-emerald-600"></i> ${escapeHtml(o.orderId)}
-            </span>
-            <span class="text-slate-400 text-[10px]">${formattedDate}</span>
+      const itemsHtml = (o.items || []).map((it) => `
+        <div class="flex items-center gap-3 py-2 border-b border-slate-100 last:border-none">
+          <img src="${it.imageUrl || 'https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=100'}" class="w-11 h-11 object-cover rounded-xl border border-slate-200 shadow-xs">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-black text-slate-900 truncate">${escapeHtml(it.name)}</p>
+            <span class="text-[11px] text-slate-500 font-semibold">Qty: ${it.quantity} • ${formatCurrency(it.price)} each</span>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${isDelivered ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-cyan-100 text-cyan-800 border border-cyan-300'}">
-              <span class="inline-block w-1.5 h-1.5 rounded-full ${isDelivered ? 'bg-emerald-500' : 'bg-cyan-500 animate-pulse'} mr-1"></span>
+          <span class="text-xs font-extrabold text-slate-900">${formatCurrency(it.price * it.quantity)}</span>
+        </div>
+      `).join('');
+
+      return `
+        <div class="p-4 bg-slate-50/90 rounded-2xl border border-slate-200 space-y-3.5 shadow-xs">
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-200 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-900 flex items-center gap-1.5 text-sm">
+                <i class="fa-solid fa-receipt text-emerald-600"></i> ${escapeHtml(o.orderId)}
+              </span>
+              <span class="text-slate-400 text-[11px]">${formattedDate}</span>
+            </div>
+            <div class="flex items-center gap-2.5">
+              <span class="text-xs font-black text-slate-900 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                Total: ${formatCurrency(o.totalAmount)}
+              </span>
+            </div>
+          </div>
+
+          <div class="divide-y divide-slate-100 bg-white p-3 rounded-xl border border-slate-200/70">
+            ${itemsHtml}
+          </div>
+
+          <div class="pt-1 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
+            <span class="text-slate-600 truncate max-w-[260px]">
+              <i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${escapeHtml(o.shippingAddress || 'Home Address')}
+            </span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="viewOrderInvoice('${escapeHtml(o.orderId)}')" class="px-3 py-1.5 text-[11px] font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl flex items-center gap-1.5 transition shadow-xs cursor-pointer">
+                <i class="fa-solid fa-file-invoice text-emerald-600"></i> Download Tax Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // 3. RENDER DELIVERIES (Focus on live shipment, courier tracking stepper, ETA)
+  if (deliveriesContainer) {
+    deliveriesContainer.innerHTML = orders.map((o) => {
+      const formattedDate = new Date(o.createdAt || Date.now()).toLocaleDateString(
+        currentLang === 'hi' ? 'hi-IN' : (currentLang === 'bn' ? 'bn-IN' : 'en-US'),
+        { month: 'short', day: 'numeric', year: 'numeric' }
+      );
+
+      const isDelivered = (o.status || '').toLowerCase() === 'delivered';
+      const isInTransit = (o.status || '').toLowerCase() === 'in transit' || (!isDelivered && (o.status || '').toLowerCase() !== 'cancelled');
+      const progressWidth = isDelivered ? '100%' : (isInTransit ? '70%' : '35%');
+
+      return `
+        <div class="p-4.5 bg-gradient-to-br from-slate-50 to-cyan-50/30 rounded-2xl border border-cyan-200/80 space-y-4 shadow-xs">
+          <div class="flex items-center justify-between pb-2.5 border-b border-cyan-100 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-900 flex items-center gap-1.5 text-sm">
+                <i class="fa-solid fa-truck-fast text-cyan-600"></i> ${escapeHtml(o.orderId)}
+              </span>
+              <span class="text-slate-400 text-[11px]">${formattedDate}</span>
+            </div>
+            <span class="px-3 py-1 rounded-full text-[11px] font-black ${isDelivered ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-cyan-100 text-cyan-800 border border-cyan-300'}">
+              <span class="inline-block w-2 h-2 rounded-full ${isDelivered ? 'bg-emerald-500' : 'bg-cyan-500 animate-pulse'} mr-1.5"></span>
               ${o.status || 'In Transit'}
             </span>
-            <span class="text-xs font-black text-slate-900">${formatCurrency(o.totalAmount)}</span>
           </div>
-        </div>
 
-        <!-- Live Delivery Stepper -->
-        <div class="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-xs">
-          <div class="flex items-center justify-between text-[10px] font-bold mb-1.5 px-0.5">
-            <span class="text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> Confirmed</span>
-            <span class="text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-box-archive text-emerald-600"></i> Packed</span>
-            <span class="${isDelivered ? 'text-emerald-700' : 'text-cyan-700 font-extrabold'} flex items-center gap-1"><i class="fa-solid fa-truck-fast ${isDelivered ? '' : 'text-cyan-600 animate-bounce'}"></i> Out for Delivery</span>
-            <span class="${isDelivered ? 'text-emerald-700 font-extrabold' : 'text-slate-400'} flex items-center gap-1"><i class="fa-solid fa-house-chimney"></i> Delivered</span>
+          <!-- Live 4-Step Delivery Progress Stepper -->
+          <div class="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs">
+            <div class="flex items-center justify-between text-[11px] font-bold mb-2 px-1">
+              <span class="text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> Confirmed</span>
+              <span class="text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-box-archive text-emerald-600"></i> Packed</span>
+              <span class="${isDelivered ? 'text-emerald-700' : 'text-cyan-700 font-extrabold'} flex items-center gap-1">
+                <i class="fa-solid fa-truck-fast ${isDelivered ? '' : 'text-cyan-600 animate-bounce'}"></i> Out for Delivery
+              </span>
+              <span class="${isDelivered ? 'text-emerald-700 font-extrabold' : 'text-slate-400'} flex items-center gap-1">
+                <i class="fa-solid fa-house-chimney"></i> Delivered
+              </span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+              <div class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 h-2 rounded-full transition-all duration-700" style="width: ${progressWidth}"></div>
+            </div>
           </div>
-          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: ${progressWidth}"></div>
-          </div>
-        </div>
 
-        <div class="divide-y divide-slate-100 bg-white p-2.5 rounded-xl border border-slate-200/60">
-          ${itemsHtml}
-        </div>
+          <div class="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
+            <div>
+              <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Courier Carrier</div>
+              <div class="font-extrabold text-slate-800 flex items-center gap-1.5 mt-0.5">
+                <i class="fa-solid fa-bolt text-amber-500"></i> GadgetHub Priority Express
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Estimated Arrival</div>
+              <div class="font-black ${isDelivered ? 'text-emerald-700' : 'text-cyan-700'} mt-0.5">
+                ${isDelivered ? 'Package Delivered' : 'Today by 8:00 PM'}
+              </div>
+            </div>
+          </div>
 
-        <div class="pt-1 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
-          <span class="truncate max-w-[240px] text-slate-600"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${escapeHtml(o.shippingAddress || 'Home Address')}</span>
-          <div class="flex items-center gap-2">
-            <button type="button" onclick="viewOrderInvoice('${escapeHtml(o.orderId)}')" class="px-2.5 py-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg flex items-center gap-1 transition shadow-sm cursor-pointer">
-              <i class="fa-solid fa-file-invoice text-emerald-600"></i> Tax Invoice
-            </button>
-            <span class="text-emerald-700 font-bold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60"><i class="fa-solid fa-bolt mr-1"></i>Express Delivery</span>
+          <div class="pt-0.5 text-[11px] text-slate-600 flex items-center justify-between">
+            <span class="truncate max-w-[280px]">
+              <i class="fa-solid fa-location-dot text-emerald-600 mr-1.5"></i>${escapeHtml(o.shippingAddress || 'Home Address')}
+            </span>
+            <span class="text-emerald-700 font-extrabold text-[10px] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+              <i class="fa-solid fa-shield-halved mr-1"></i>Verified Handover
+            </span>
           </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 }
 
 async function handleProfileUpdate(e) {
@@ -1197,7 +1323,8 @@ async function handleProfileUpdate(e) {
   if (!authToken) return;
 
   const name = document.getElementById('profileInputName').value.trim();
-  const phone = document.getElementById('profileInputPhone').value.trim();
+  const phoneInput = document.getElementById('profileInputPhone');
+  const phone = phoneInput ? phoneInput.value.trim() : '';
   const address = document.getElementById('profileInputAddress').value.trim();
   const newPassword = document.getElementById('profileInputPassword').value.trim();
 
@@ -1206,7 +1333,8 @@ async function handleProfileUpdate(e) {
     return;
   }
 
-  const payload = { name, phone, address };
+  const payload = { name, address };
+  if (phone) payload.phone = phone;
   if (newPassword) payload.newPassword = newPassword;
 
   try {

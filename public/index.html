@@ -686,31 +686,67 @@
                 <p id="sidebarUserEmail" class="text-[10px] text-slate-400 truncate">user@example.com</p>
               </div>
             </div>
-            <div class="flex gap-1.5 pt-1">
-              <button onclick="closeSidebar(); openProfileModal('details');" class="flex-1 py-1.5 px-2 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex items-center justify-center gap-1 shadow-sm">
-                <i class="fa-solid fa-id-card text-emerald-600"></i> <span id="i18n-sidebarMyProfile">Profile</span>
+            <div class="grid grid-cols-3 gap-1.5 pt-1">
+              <button onclick="closeSidebar(); openProfileModal('details');" class="py-1.5 px-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex items-center justify-center gap-1 shadow-xs">
+                <i class="fa-solid fa-id-card text-emerald-600"></i> <span>Profile</span>
               </button>
-              <button onclick="closeSidebar(); openProfileModal('orders');" class="flex-1 py-1.5 px-2 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded-lg transition flex items-center justify-center gap-1 shadow-sm" title="My Deliveries & Orders">
-                <i class="fa-solid fa-truck-fast text-emerald-600"></i>
+              <button onclick="closeSidebar(); openProfileModal('orders');" class="py-1.5 px-1 text-[11px] font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition flex items-center justify-center gap-1 shadow-xs" title="My Orders">
+                <i class="fa-solid fa-bag-shopping text-emerald-600"></i>
                 <span>Orders</span>
-                <span id="sidebarOrdersBadge" class="ml-0.5 px-1.5 py-0.2 rounded-full text-[9px] font-black bg-emerald-600 text-white">0</span>
               </button>
-              <button onclick="handleLogout()" class="py-1.5 px-2.5 text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition" title="Log Out">
+              <button onclick="closeSidebar(); openProfileModal('deliveries');" class="py-1.5 px-1 text-[11px] font-bold text-cyan-800 bg-cyan-50 border border-cyan-200 hover:bg-cyan-100 rounded-lg transition flex items-center justify-center gap-1 shadow-xs" title="Live Deliveries">
+                <i class="fa-solid fa-truck-fast text-cyan-600"></i>
+                <span>Deliveries</span>
+              </button>
+            </div>
+            <div class="pt-0.5">
+              <button onclick="handleLogout()" class="w-full py-1 px-2 text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded-lg transition flex items-center justify-center gap-1.5" title="Log Out">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Sign Out</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Dedicated My Deliveries & Order History Section -->
+        <!-- SECTION 1: MY ORDERS (Dedicated Section) -->
         <div class="border-t border-slate-200 pt-4">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-truck-fast text-emerald-600 text-sm"></i>
-              <span>My Deliveries & History</span>
+              <i class="fa-solid fa-bag-shopping text-emerald-600 text-sm"></i>
+              <span>My Orders</span>
             </span>
-            <span id="sidebarDeliveriesBadge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <span id="sidebarOrdersBadgeCount" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
               0 Orders
+            </span>
+          </div>
+
+          <button 
+            id="sidebarOrdersBtn"
+            onclick="handleSidebarOrdersClick()" 
+            class="w-full p-3 rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-emerald-50/20 to-white hover:from-emerald-50 hover:to-teal-50/50 text-left transition group shadow-xs flex items-center justify-between cursor-pointer"
+          >
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-900 text-white flex items-center justify-center text-sm shadow-md group-hover:scale-105 transition-transform">
+                <i class="fa-solid fa-receipt text-emerald-400"></i>
+              </div>
+              <div>
+                <div class="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition">Order History & Receipts</div>
+                <div id="sidebarOrdersSubtext" class="text-[10px] text-slate-500 font-medium">Invoices, billing & past orders</div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition text-xs"></i>
+          </button>
+        </div>
+
+        <!-- SECTION 2: DELIVERIES (Dedicated Section) -->
+        <div class="border-t border-slate-200 pt-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-truck-fast text-cyan-600 text-sm"></i>
+              <span>Deliveries</span>
+            </span>
+            <span id="sidebarDeliveriesStatusBadge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-800 border border-cyan-200">
+              Live Tracking
             </span>
           </div>
 
@@ -718,33 +754,39 @@
             <button 
               id="sidebarDeliveriesBtn"
               onclick="handleSidebarDeliveriesClick()" 
-              class="w-full p-3 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-white hover:from-emerald-100 hover:to-teal-100/70 text-left transition group shadow-sm flex items-center justify-between cursor-pointer"
+              class="w-full p-3 rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50/90 via-sky-50/50 to-white hover:from-cyan-100 hover:to-sky-100/70 text-left transition group shadow-sm flex items-center justify-between cursor-pointer"
             >
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center text-sm shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-                  <i class="fa-solid fa-box-open"></i>
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-blue-600 text-white flex items-center justify-center text-sm shadow-md shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+                  <i class="fa-solid fa-truck-ramp-box"></i>
                 </div>
                 <div>
-                  <div class="text-xs font-black text-slate-900 group-hover:text-emerald-700 transition flex items-center gap-1.5">
-                    <span>Track Live Deliveries</span>
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <div class="text-xs font-black text-slate-900 group-hover:text-cyan-700 transition flex items-center gap-1.5">
+                    <span>Track Live Shipments</span>
+                    <span class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
                   </div>
-                  <div id="sidebarDeliveriesSubtext" class="text-[11px] text-slate-500 font-medium">View active orders, shipping & tax invoices</div>
+                  <div id="sidebarDeliveriesSubtext" class="text-[10px] text-slate-500 font-medium">Real-time package transit & ETA</div>
                 </div>
               </div>
-              <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition text-xs"></i>
+              <i class="fa-solid fa-chevron-right text-slate-400 group-hover:text-cyan-600 group-hover:translate-x-0.5 transition text-xs"></i>
             </button>
 
-            <!-- Quick Recent Order Preview (populated dynamically when logged in) -->
-            <div id="sidebarRecentOrderPreview" class="hidden p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+            <!-- Quick Live Delivery Preview -->
+            <div id="sidebarRecentDeliveryPreview" class="hidden p-2.5 bg-cyan-50/70 border border-cyan-200/90 rounded-xl text-xs space-y-1">
               <div class="flex items-center justify-between text-[11px] font-bold text-slate-700">
-                <span class="flex items-center gap-1 text-emerald-700">
-                  <i class="fa-solid fa-circle-dot text-[8px] animate-ping"></i>
-                  <span id="sidebarRecentOrderId">ORD-782194</span>
+                <span class="flex items-center gap-1 text-cyan-800 font-black">
+                  <i class="fa-solid fa-truck text-xs animate-bounce text-cyan-600"></i>
+                  <span id="sidebarDeliveryOrderId">ORD-547743</span>
                 </span>
-                <span id="sidebarRecentOrderStatus" class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-blue-100 text-blue-800">In Transit</span>
+                <span id="sidebarDeliveryStatus" class="px-2 py-0.5 rounded-full text-[9px] font-black bg-cyan-200/90 text-cyan-900">In Transit</span>
               </div>
-              <p id="sidebarRecentOrderDetails" class="text-[10px] text-slate-500 truncate">1 item • Fast Express Delivery</p>
+              <div class="w-full bg-cyan-200/60 rounded-full h-1.5 my-1.5 overflow-hidden">
+                <div id="sidebarDeliveryProgressBar" class="bg-gradient-to-r from-emerald-500 to-cyan-500 h-1.5 rounded-full" style="width: 70%"></div>
+              </div>
+              <p id="sidebarDeliveryDetails" class="text-[10px] text-slate-600 flex items-center justify-between">
+                <span><i class="fa-solid fa-circle-dot text-[8px] text-emerald-500 mr-1"></i>Out for Delivery</span>
+                <span class="text-emerald-700 font-extrabold">Express Shipping</span>
+              </p>
             </div>
           </div>
         </div>
@@ -1550,27 +1592,16 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Phone (Optional)</label>
-            <input 
-              type="tel" 
-              id="registerPhone" 
-              placeholder="+91 98765 43210" 
-              class="w-full text-xs px-3 py-2 bg-[#131b2e] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition"
-            >
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Password (6+ chars) *</label>
-            <input 
-              type="password" 
-              id="registerPassword" 
-              required 
-              minlength="6" 
-              placeholder="••••••••" 
-              class="w-full text-xs px-3 py-2 bg-[#131b2e] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition"
-            >
-          </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Password (6+ chars) *</label>
+          <input 
+            type="password" 
+            id="registerPassword" 
+            required 
+            minlength="6" 
+            placeholder="••••••••" 
+            class="w-full text-xs px-3 py-2 bg-[#131b2e] border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition"
+          >
         </div>
 
         <div>
@@ -1639,15 +1670,23 @@
             class="pb-2.5 border-b-2 border-emerald-400 text-white flex items-center gap-1.5 transition"
           >
             <i class="fa-solid fa-id-card"></i>
-            <span>Account Details & Address</span>
+            <span>Account Details</span>
           </button>
           <button 
             id="tabProfileOrdersBtn" 
             onclick="switchProfileTab('orders')" 
             class="pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition"
           >
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span>My Orders (<span id="userOrdersCount">0</span>)</span>
+          </button>
+          <button 
+            id="tabProfileDeliveriesBtn" 
+            onclick="switchProfileTab('deliveries')" 
+            class="pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-1.5 transition"
+          >
             <i class="fa-solid fa-truck-fast"></i>
-            <span>My Deliveries & History (<span id="userOrdersCount">0</span>)</span>
+            <span>Deliveries (<span id="userDeliveriesCount">0</span>)</span>
           </button>
         </div>
       </div>
@@ -1676,26 +1715,15 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
-              <input 
-                type="tel" 
-                id="profileInputPhone" 
-                placeholder="+91 98765 43210" 
-                class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Change Password (Optional)</label>
-              <input 
-                type="password" 
-                id="profileInputPassword" 
-                placeholder="Leave blank to keep current" 
-                minlength="6"
-                class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-            </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Change Password (Optional)</label>
+            <input 
+              type="password" 
+              id="profileInputPassword" 
+              placeholder="Leave blank to keep current password" 
+              minlength="6"
+              class="w-full text-xs px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            >
           </div>
 
           <div>
@@ -1725,6 +1753,13 @@
       <div id="profileOrdersPanel" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar hidden">
         <div id="userOrdersListContainer" class="space-y-3">
           <!-- Dynamic orders injected here -->
+        </div>
+      </div>
+
+      <!-- Tab 3: Deliveries Panel -->
+      <div id="profileDeliveriesPanel" class="p-6 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar hidden">
+        <div id="userDeliveriesListContainer" class="space-y-3">
+          <!-- Dynamic live delivery cards injected here -->
         </div>
       </div>
 
