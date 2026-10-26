@@ -1758,18 +1758,22 @@ function renderProducts(products) {
 }
 
 // ======================== SHOPPING CART ENGINE ========================
-function addToCart(productId) {
+function addToCart(productId, customPrice = null, customNote = null) {
   const product = currentProducts.find((p) => p._id === productId);
   if (!product) return;
 
-  const existingIndex = cart.findIndex((item) => item.productId === productId);
+  const itemKey = customNote ? `${productId}-exchange` : productId;
+  const existingIndex = cart.findIndex((item) => item.productId === itemKey);
+  const finalPrice = (customPrice !== null && !isNaN(customPrice)) ? customPrice : product.price;
+  const displayName = customNote ? `${product.name} (${customNote})` : product.name;
+
   if (existingIndex > -1) {
     cart[existingIndex].quantity += 1;
   } else {
     cart.push({
-      productId: product._id,
-      name: product.name,
-      price: product.price,
+      productId: itemKey,
+      name: displayName,
+      price: finalPrice,
       imageUrl: product.imageUrl,
       category: product.category,
       quantity: 1
@@ -1778,7 +1782,7 @@ function addToCart(productId) {
 
   saveCart();
   renderCart();
-  showToast(`"${product.name}" ${t('toastAdded')}`, 'success');
+  showToast(`"${displayName}" ${t('toastAdded')}`, 'success');
 }
 
 function updateCartQuantity(productId, delta) {
@@ -1993,12 +1997,67 @@ async function viewProductDetails(productId) {
   }
 }
 
+let currentExchangeSelected = 'without';
+
+function selectExchangeOption(type) {
+  if (!selectedProductForDetail) return;
+  currentExchangeSelected = type;
+
+  const labelWith = document.getElementById('labelWithExchange');
+  const labelWithout = document.getElementById('labelWithoutExchange');
+  const radioWith = document.getElementById('radioWithExchange');
+  const radioWithout = document.getElementById('radioWithoutExchange');
+  const priceEl = document.getElementById('modalProductPrice');
+  const exchangeBadge = document.getElementById('modalExchangeBadge');
+  const discountBadge = document.getElementById('modalDiscountBadge');
+
+  const basePrice = selectedProductForDetail.price;
+  const maxExchangeOff = Math.min(Math.round(basePrice * 0.231), 30050);
+  const exchangePrice = Math.max(basePrice - maxExchangeOff, 1000);
+
+  const activeClass = 'flex items-start gap-2.5 p-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50/50 cursor-pointer shadow-xs transition';
+  const inactiveClass = 'flex items-start gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition';
+
+  if (type === 'with') {
+    if (radioWith) radioWith.checked = true;
+    if (radioWithout) radioWithout.checked = false;
+    if (labelWith) labelWith.className = activeClass;
+    if (labelWithout) labelWithout.className = inactiveClass;
+
+    // Update main display price to exchange price
+    if (priceEl) priceEl.textContent = formatCurrency(exchangePrice);
+    if (exchangeBadge) {
+      exchangeBadge.innerHTML = `<i class="fa-solid fa-recycle mr-1"></i>Exchange Applied: -${formatCurrency(maxExchangeOff)}`;
+      exchangeBadge.classList.remove('hidden');
+    }
+    if (discountBadge) {
+      const mrp = Math.round(basePrice * 1.56);
+      const totalDiscountPercent = Math.round(((mrp - exchangePrice) / mrp) * 100);
+      discountBadge.textContent = `-${totalDiscountPercent}%`;
+    }
+    showToast(`Exchange option active! Saved ${formatCurrency(maxExchangeOff)} on ${selectedProductForDetail.name}`, 'info');
+  } else {
+    if (radioWith) radioWith.checked = false;
+    if (radioWithout) radioWithout.checked = true;
+    if (labelWith) labelWith.className = inactiveClass;
+    if (labelWithout) labelWithout.className = activeClass;
+
+    // Reset to base price
+    if (priceEl) priceEl.textContent = formatCurrency(basePrice);
+    if (exchangeBadge) exchangeBadge.classList.add('hidden');
+    if (discountBadge) discountBadge.textContent = '-36%';
+  }
+}
+
 function populateDetailModal(p) {
   const mrp = Math.round(p.price * 1.56);
 
-  // Breadcrumb
+  // Breadcrumbs
   const breadcrumb = document.getElementById('modalBreadcrumbCat');
   if (breadcrumb) breadcrumb.textContent = p.category;
+
+  const breadcrumbBrand = document.getElementById('modalBreadcrumbBrand');
+  if (breadcrumbBrand) breadcrumbBrand.textContent = p.brand || 'GadgetHub';
 
   // Dynamic Multi-Angle Image Gallery Setup
   currentModalGallery = (Array.isArray(p.images) && p.images.length > 0) 
@@ -2060,8 +2119,21 @@ function populateDetailModal(p) {
   const mrpEl = document.getElementById('modalProductMRP');
   if (mrpEl) mrpEl.textContent = formatCurrency(mrp);
 
+  // Dynamic Exchange calculations
+  const maxExchangeOff = Math.min(Math.round(p.price * 0.231), 30050);
+  const exchangePrice = Math.max(p.price - maxExchangeOff, 1000);
+
+  const exchangeDiscountText = document.getElementById('exchangeDiscountText');
+  if (exchangeDiscountText) exchangeDiscountText.textContent = `Up to ${formatCurrency(maxExchangeOff)} off`;
+
+  const exchangePriceCalculated = document.getElementById('exchangePriceCalculated');
+  if (exchangePriceCalculated) exchangePriceCalculated.textContent = formatCurrency(exchangePrice);
+
   const buyBoxPrice = document.getElementById('buyBoxPrice');
   if (buyBoxPrice) buyBoxPrice.textContent = formatCurrency(p.price);
+
+  // Initialize exchange selection to 'without'
+  selectExchangeOption('without');
 
   // Description Overview
   const descEl = document.getElementById('modalProductDesc');
@@ -2084,14 +2156,24 @@ function populateDetailModal(p) {
     }
   }
 
-  // Hook Buy Box Buttons
+  // Hook Buy Box Buttons with Exchange consideration
   const addToCartBtn = document.getElementById('modalAddToCartBtn');
-  if (addToCartBtn) addToCartBtn.onclick = () => addToCart(p._id);
+  if (addToCartBtn) {
+    addToCartBtn.onclick = () => {
+      const isExchange = currentExchangeSelected === 'with';
+      const effectivePrice = isExchange ? exchangePrice : p.price;
+      const note = isExchange ? 'With Exchange' : null;
+      addToCart(p._id, effectivePrice, note);
+    };
+  }
 
   const buyNowBtn = document.getElementById('modalBuyNowBtn');
   if (buyNowBtn) {
     buyNowBtn.onclick = () => {
-      addToCart(p._id);
+      const isExchange = currentExchangeSelected === 'with';
+      const effectivePrice = isExchange ? exchangePrice : p.price;
+      const note = isExchange ? 'With Exchange' : null;
+      addToCart(p._id, effectivePrice, note);
       closeDetailModal();
       toggleCartDrawer(true);
     };
