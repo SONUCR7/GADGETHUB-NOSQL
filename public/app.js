@@ -112,7 +112,7 @@ const i18n = {
     cartDeliveryLabel: 'Standard Delivery',
     cartFreeDeliveryBadge: 'Free Delivery',
     cartTotalLabel: 'Total Amount',
-    cartCheckoutText: 'Complete Simulated Checkout',
+    cartCheckoutText: 'Proceed to Payment (COD / UPI / NetBanking)',
     emptyCartTitle: 'Your cart is empty',
     emptyCartSubtitle: 'Explore gadgets and click "Cart" to add items.',
     sidebarLangTitle: 'Language (भाषा / ভাষা)',
@@ -1870,15 +1870,192 @@ function toggleCartDrawer(open) {
   }
 }
 
-async function handleCheckout() {
+// ======================== PAYMENT GATEWAY & CHECKOUT CONTROLLER ========================
+let currentSelectedPaymentMethod = 'COD';
+
+function openPaymentModal() {
   if (cart.length === 0) {
     showToast(t('emptyCartTitle'), 'warning');
     return;
   }
 
-  const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  // Calculate cart total with coupon
+  let subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  let discount = 0;
+  if (appliedCoupon && AVAILABLE_COUPONS[appliedCoupon]) {
+    const cp = AVAILABLE_COUPONS[appliedCoupon];
+    if (cp.type === 'percent') {
+      discount = Math.round((subtotal * cp.value) / 100);
+    } else if (cp.type === 'flat') {
+      discount = cp.value;
+    }
+  }
+  const finalTotal = Math.max(0, subtotal - discount);
 
-  // If user is logged in, persist the order to their MongoDB account
+  // Update modal views
+  const modalTotal = document.getElementById('paymentModalTotalAmount');
+  if (modalTotal) modalTotal.textContent = formatCurrency(finalTotal);
+
+  const itemSummary = document.getElementById('paymentModalItemSummary');
+  if (itemSummary) {
+    const totalQty = cart.reduce((acc, i) => acc + i.quantity, 0);
+    itemSummary.textContent = `${totalQty} item${totalQty === 1 ? '' : 's'} in order`;
+  }
+
+  // Delivery info
+  const delName = document.getElementById('paymentDeliveryName');
+  if (delName) delName.textContent = currentUser?.name || 'Priya Sen';
+
+  const delAddr = document.getElementById('paymentDeliveryAddress');
+  if (delAddr) delAddr.textContent = currentUser?.address || 'Flat 4B, Green Meadows, Indiranagar, Bengaluru, Karnataka 560038';
+
+  // Reset to form view
+  const formView = document.getElementById('paymentFormView');
+  const procView = document.getElementById('paymentProcessingView');
+  const succView = document.getElementById('paymentSuccessView');
+  if (formView) formView.classList.remove('hidden');
+  if (procView) procView.classList.add('hidden');
+  if (succView) succView.classList.add('hidden');
+
+  // Reset selection to COD
+  handlePaymentMethodChange('COD');
+  const codRadio = document.querySelector('input[name="paymentMethod"][value="COD"]');
+  if (codRadio) codRadio.checked = true;
+
+  // Close cart drawer and open payment modal
+  toggleCartDrawer(false);
+  const paymentModal = document.getElementById('paymentModal');
+  if (paymentModal) {
+    paymentModal.classList.remove('hidden');
+    paymentModal.classList.add('flex');
+  }
+}
+
+function closePaymentModal() {
+  const paymentModal = document.getElementById('paymentModal');
+  if (paymentModal) {
+    paymentModal.classList.add('hidden');
+    paymentModal.classList.remove('flex');
+  }
+}
+
+function handlePaymentMethodChange(method) {
+  currentSelectedPaymentMethod = method;
+
+  // Update card borders and backgrounds
+  ['COD', 'UPI', 'NETBANKING', 'CARD'].forEach(m => {
+    const cardEl = document.getElementById(`card${m}`);
+    const radioEl = document.querySelector(`input[name="paymentMethod"][value="${m}"]`);
+    if (!cardEl) return;
+
+    if (m === method) {
+      if (radioEl) radioEl.checked = true;
+      cardEl.className = 'payment-option-card relative border-2 border-emerald-500 bg-emerald-50/40 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3.5 cursor-pointer transition shadow-sm';
+    } else {
+      cardEl.className = 'payment-option-card relative border-2 border-slate-200 hover:border-slate-300 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3.5 cursor-pointer transition';
+    }
+  });
+
+  // Toggle sub-sections
+  const upiSub = document.getElementById('upiSubSection');
+  const netSub = document.getElementById('netbankingSubSection');
+  const cardSub = document.getElementById('cardSubSection');
+  if (upiSub) upiSub.classList.toggle('hidden', method !== 'UPI');
+  if (netSub) netSub.classList.toggle('hidden', method !== 'NETBANKING');
+  if (cardSub) cardSub.classList.toggle('hidden', method !== 'CARD');
+
+  // Compute final price
+  let subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  let discount = 0;
+  if (appliedCoupon && AVAILABLE_COUPONS[appliedCoupon]) {
+    const cp = AVAILABLE_COUPONS[appliedCoupon];
+    if (cp.type === 'percent') discount = Math.round((subtotal * cp.value) / 100);
+    else if (cp.type === 'flat') discount = cp.value;
+  }
+  const finalTotal = Math.max(0, subtotal - discount);
+
+  // Update button text
+  const btnText = document.getElementById('confirmPaymentBtnText');
+  if (btnText) {
+    if (method === 'COD') {
+      btnText.textContent = `Place Order with Cash on Delivery (${formatCurrency(finalTotal)})`;
+    } else if (method === 'UPI') {
+      btnText.textContent = `Pay ${formatCurrency(finalTotal)} via UPI`;
+    } else if (method === 'NETBANKING') {
+      btnText.textContent = `Pay ${formatCurrency(finalTotal)} via Net Banking`;
+    } else if (method === 'CARD') {
+      btnText.textContent = `Pay ${formatCurrency(finalTotal)} with Card`;
+    }
+  }
+}
+
+function selectUpiApp(appName) {
+  const upiInput = document.getElementById('upiIdInput');
+  if (upiInput) {
+    const username = (currentUser?.name || 'priya').toLowerCase().replace(/\s+/g, '');
+    let handle = '@upi';
+    if (appName.includes('Google')) handle = '@okhdfcbank';
+    else if (appName.includes('PhonePe')) handle = '@ybl';
+    else if (appName.includes('Paytm')) handle = '@paytm';
+    upiInput.value = `${username}${handle}`;
+    upiInput.focus();
+  }
+}
+
+function editPaymentAddress() {
+  const current = document.getElementById('paymentDeliveryAddress')?.textContent || '';
+  const newAddr = prompt('Update Delivery Address:', current);
+  if (newAddr && newAddr.trim()) {
+    const delAddr = document.getElementById('paymentDeliveryAddress');
+    if (delAddr) delAddr.textContent = newAddr.trim();
+    if (currentUser) {
+      currentUser.address = newAddr.trim();
+      localStorage.setItem('gadgethub_user', JSON.stringify(currentUser));
+    }
+    showToast('Delivery address updated!', 'success');
+  }
+}
+
+async function processOrderPayment() {
+  if (cart.length === 0) return;
+
+  const formView = document.getElementById('paymentFormView');
+  const procView = document.getElementById('paymentProcessingView');
+  const succView = document.getElementById('paymentSuccessView');
+
+  // Step 1: Switch to processing screen
+  if (formView) formView.classList.add('hidden');
+  if (procView) procView.classList.remove('hidden');
+
+  let subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  let discount = 0;
+  if (appliedCoupon && AVAILABLE_COUPONS[appliedCoupon]) {
+    const cp = AVAILABLE_COUPONS[appliedCoupon];
+    if (cp.type === 'percent') discount = Math.round((subtotal * cp.value) / 100);
+    else if (cp.type === 'flat') discount = cp.value;
+  }
+  const finalTotal = Math.max(0, subtotal - discount);
+
+  // Determine method label
+  let methodLabel = 'Cash on Delivery (COD)';
+  if (currentSelectedPaymentMethod === 'UPI') {
+    const upiVal = document.getElementById('upiIdInput')?.value || '';
+    methodLabel = upiVal ? `UPI (${upiVal})` : 'UPI (Instant)';
+  } else if (currentSelectedPaymentMethod === 'NETBANKING') {
+    const bankVal = document.querySelector('input[name="bankSelect"]:checked')?.value || 'HDFC Bank';
+    methodLabel = `Net Banking (${bankVal})`;
+  } else if (currentSelectedPaymentMethod === 'CARD') {
+    methodLabel = 'Credit/Debit Card';
+  }
+
+  const shippingAddr = document.getElementById('paymentDeliveryAddress')?.textContent || currentUser?.address || 'Flat 4B, Green Meadows, Indiranagar, Bengaluru, Karnataka 560038';
+
+  // Simulate realistic 1.2s payment handshake
+  await new Promise(r => setTimeout(r, 1200));
+
+  let orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+
+  // If user is logged in, persist to MongoDB
   if (currentUser && authToken) {
     try {
       const res = await fetch('/api/auth/orders', {
@@ -1889,29 +2066,54 @@ async function handleCheckout() {
         },
         body: JSON.stringify({
           items: cart,
-          totalAmount: total,
-          shippingAddress: currentUser.address
+          totalAmount: finalTotal,
+          shippingAddress: shippingAddr
         })
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.data) {
+        orderId = data.data.orderId;
         if (!currentUser.orders) currentUser.orders = [];
         currentUser.orders.unshift(data.data);
         localStorage.setItem('gadgethub_user', JSON.stringify(currentUser));
         updateAuthUI();
-        showToast(`🎉 Order ${data.data.orderId} Placed Successfully! (${formatCurrency(total)})`, 'success');
       }
     } catch (err) {
       console.error('Order save error:', err);
     }
-  } else {
-    showToast(`🎉 ${t('toastCheckout')} (${formatCurrency(total)})! (Tip: Sign In to track order history)`, 'success');
   }
 
+  // Populate Success view
+  const orderIdEl = document.getElementById('successOrderId');
+  if (orderIdEl) orderIdEl.textContent = orderId;
+
+  const methodEl = document.getElementById('successPaymentMethod');
+  if (methodEl) methodEl.textContent = methodLabel;
+
+  const totalEl = document.getElementById('successTotalAmount');
+  if (totalEl) totalEl.textContent = formatCurrency(finalTotal);
+
+  // Switch to success view
+  if (procView) procView.classList.add('hidden');
+  if (succView) succView.classList.remove('hidden');
+
+  // Empty cart
   cart = [];
+  appliedCoupon = null;
   saveCart();
   renderCart();
-  setTimeout(() => toggleCartDrawer(false), 1200);
+
+  showToast(`🎉 Order ${orderId} confirmed via ${methodLabel}!`, 'success');
+}
+
+function viewDeliveriesAfterPayment() {
+  closePaymentModal();
+  openProfileModal();
+  switchProfileTab('deliveries');
+}
+
+function handleCheckout() {
+  openPaymentModal();
 }
 
 // ======================== MODAL: AMAZON DETAILS & REAL REVIEWS ========================
@@ -3452,3 +3654,10 @@ window.toggleAgentDrawer = toggleAgentDrawer;
 window.clearAgentChat = clearAgentChat;
 window.triggerQuickAgentGoal = triggerQuickAgentGoal;
 window.handleAgentFormSubmit = handleAgentFormSubmit;
+window.openPaymentModal = openPaymentModal;
+window.closePaymentModal = closePaymentModal;
+window.handlePaymentMethodChange = handlePaymentMethodChange;
+window.selectUpiApp = selectUpiApp;
+window.editPaymentAddress = editPaymentAddress;
+window.processOrderPayment = processOrderPayment;
+window.viewDeliveriesAfterPayment = viewDeliveriesAfterPayment;

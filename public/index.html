@@ -1461,8 +1461,8 @@
           id="checkoutBtn"
           class="btn-3d w-full py-3 text-sm font-extrabold text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center gap-2 shadow-lg"
         >
-          <i class="fa-solid fa-lock"></i>
-          <span id="i18n-cartCheckoutText">Complete Simulated Checkout</span>
+          <i class="fa-solid fa-credit-card"></i>
+          <span id="i18n-cartCheckoutText">Proceed to Payment (COD / UPI / NetBanking)</span>
         </button>
       </div>
 
@@ -2004,6 +2004,278 @@
       </form>
     </div>
   </aside>
+
+  <!-- 9. Modern Secure Payment Gateway & Checkout Modal -->
+  <div id="paymentModal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md hidden items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden my-4 border border-slate-200/90 text-slate-800 animate-in fade-in zoom-in duration-200">
+      
+      <!-- Top Security Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 px-5 py-3.5 text-white flex items-center justify-between border-b border-indigo-900/40">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
+            <i class="fa-solid fa-shield-halved text-sm"></i>
+          </div>
+          <div>
+            <h4 class="text-xs sm:text-sm font-black tracking-tight flex items-center gap-2">
+              <span>GadgetHub Secure Payment Gateway</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/30 hidden sm:inline-block">256-Bit SSL Encrypted</span>
+            </h4>
+            <p class="text-[10px] text-slate-400">PCI-DSS Compliant • 100% Buyer Protection</p>
+          </div>
+        </div>
+        <button onclick="closePaymentModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Main Gateway Content (Step 1: Method Selection) -->
+      <div id="paymentFormView" class="p-4 sm:p-6 space-y-5">
+        
+        <!-- Order Total & Delivery Quick Bar -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 font-bold text-base shrink-0">
+              <i class="fa-solid fa-bag-shopping"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Total Payable Amount</p>
+              <h3 id="paymentModalTotalAmount" class="text-xl sm:text-2xl font-black text-slate-900">₹0</h3>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+              <i class="fa-solid fa-truck-fast"></i> Free 1-Day Prime Delivery
+            </span>
+            <p id="paymentModalItemSummary" class="text-[11px] text-slate-500 mt-1 font-medium">1 item in order</p>
+          </div>
+        </div>
+
+        <!-- Delivery Address Confirm -->
+        <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-2xl flex items-start justify-between gap-3 text-xs">
+          <div class="flex items-start gap-2.5">
+            <i class="fa-solid fa-location-dot text-indigo-600 mt-0.5 text-sm shrink-0"></i>
+            <div>
+              <span class="font-bold text-slate-900 block">Deliver to: <span id="paymentDeliveryName">Priya Sen</span></span>
+              <p id="paymentDeliveryAddress" class="text-slate-600 text-[11px] mt-0.5 line-clamp-1">Flat 4B, Green Meadows, Indiranagar, Bengaluru, Karnataka 560038</p>
+            </div>
+          </div>
+          <button type="button" onclick="editPaymentAddress()" class="text-indigo-600 hover:text-indigo-800 font-bold text-[11px] shrink-0 underline cursor-pointer">Change</button>
+        </div>
+
+        <!-- Payment Method Tabs -->
+        <div class="space-y-2.5">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Payment Method:</label>
+          
+          <div class="grid grid-cols-1 gap-2.5">
+            
+            <!-- Option 1: Cash on Delivery (COD) -->
+            <label id="cardCOD" class="payment-option-card relative border-2 border-emerald-500 bg-emerald-50/30 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3.5 cursor-pointer transition hover:border-emerald-600">
+              <input type="radio" name="paymentMethod" value="COD" checked onchange="handlePaymentMethodChange('COD')" class="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500 accent-emerald-600">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold shrink-0">
+                      <i class="fa-solid fa-money-bill-wave"></i>
+                    </span>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-900">Cash on Delivery (COD)</span>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 uppercase">Recommended</span>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-1">Pay with cash or scan delivery associate's QR code when package arrives at your doorstep.</p>
+                <div class="mt-2 flex items-center gap-2 text-[10px] text-emerald-800 font-bold">
+                  <i class="fa-solid fa-box-open"></i> Includes Open-Box Inspection before payment
+                </div>
+              </div>
+            </label>
+
+            <!-- Option 2: UPI (Instant) -->
+            <label id="cardUPI" class="payment-option-card relative border-2 border-slate-200 hover:border-indigo-300 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3.5 cursor-pointer transition">
+              <input type="radio" name="paymentMethod" value="UPI" onchange="handlePaymentMethodChange('UPI')" class="mt-1 w-4 h-4 text-indigo-600 focus:ring-indigo-500 accent-indigo-600">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold shrink-0">
+                      <i class="fa-solid fa-mobile-screen-button"></i>
+                    </span>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-900">UPI Instant Payment</span>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-900">0% Extra Fee</span>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-1">Google Pay, PhonePe, Paytm, BHIM, Cred or Any Banking UPI App.</p>
+                
+                <!-- UPI sub-details (revealed if selected) -->
+                <div id="upiSubSection" class="hidden mt-3 pt-3 border-t border-slate-200 space-y-2.5">
+                  <div class="flex flex-wrap gap-2 text-xs">
+                    <button type="button" onclick="selectUpiApp('Google Pay')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-white font-bold flex items-center gap-1.5 cursor-pointer text-slate-700">
+                      <i class="fa-brands fa-google text-blue-500"></i> Google Pay
+                    </button>
+                    <button type="button" onclick="selectUpiApp('PhonePe')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-white font-bold flex items-center gap-1.5 cursor-pointer text-slate-700">
+                      <i class="fa-solid fa-bolt text-purple-600"></i> PhonePe
+                    </button>
+                    <button type="button" onclick="selectUpiApp('Paytm')" class="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-indigo-400 bg-white font-bold flex items-center gap-1.5 cursor-pointer text-slate-700">
+                      <i class="fa-solid fa-wallet text-sky-500"></i> Paytm
+                    </button>
+                  </div>
+                  <div class="relative">
+                    <input type="text" id="upiIdInput" placeholder="Enter UPI ID (e.g. mobile@upi, username@okhdfcbank)" class="w-full text-xs px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl focus:border-indigo-500 focus:outline-none">
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Option 3: Net Banking -->
+            <label id="cardNETBANKING" class="payment-option-card relative border-2 border-slate-200 hover:border-blue-300 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3.5 cursor-pointer transition">
+              <input type="radio" name="paymentMethod" value="NETBANKING" onchange="handlePaymentMethodChange('NETBANKING')" class="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500 accent-blue-600">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
+                      <i class="fa-solid fa-building-columns"></i>
+                    </span>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-900">Net Banking</span>
+                  </div>
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-900">All Major Banks</span>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-1">Direct bank transfer with instant authorization.</p>
+
+                <!-- Netbanking sub-details -->
+                <div id="netbankingSubSection" class="hidden mt-3 pt-3 border-t border-slate-200 space-y-2">
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <label class="p-2 border border-slate-200 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 font-bold text-slate-700">
+                      <input type="radio" name="bankSelect" value="HDFC Bank" checked class="accent-blue-600"> HDFC Bank
+                    </label>
+                    <label class="p-2 border border-slate-200 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 font-bold text-slate-700">
+                      <input type="radio" name="bankSelect" value="SBI" class="accent-blue-600"> SBI
+                    </label>
+                    <label class="p-2 border border-slate-200 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 font-bold text-slate-700">
+                      <input type="radio" name="bankSelect" value="ICICI Bank" class="accent-blue-600"> ICICI Bank
+                    </label>
+                    <label class="p-2 border border-slate-200 rounded-xl flex items-center gap-1.5 cursor-pointer hover:bg-slate-50 font-bold text-slate-700">
+                      <input type="radio" name="bankSelect" value="Axis Bank" class="accent-blue-600"> Axis Bank
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Option 4: Credit / Debit Card -->
+            <label id="cardCARD" class="payment-option-card relative border-2 border-slate-200 hover:border-amber-300 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3.5 cursor-pointer transition">
+              <input type="radio" name="paymentMethod" value="CARD" onchange="handlePaymentMethodChange('CARD')" class="mt-1 w-4 h-4 text-amber-600 focus:ring-amber-500 accent-amber-600">
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold shrink-0">
+                      <i class="fa-solid fa-credit-card"></i>
+                    </span>
+                    <span class="text-xs sm:text-sm font-extrabold text-slate-900">Credit / Debit Cards</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-slate-500 text-xs">
+                    <i class="fa-brands fa-cc-visa text-blue-600 text-base"></i>
+                    <i class="fa-brands fa-cc-mastercard text-rose-500 text-base"></i>
+                  </div>
+                </div>
+                <p class="text-[11px] text-slate-600 mt-1">Visa, MasterCard, RuPay, and American Express cards.</p>
+
+                <!-- Card Sub-Section -->
+                <div id="cardSubSection" class="hidden mt-3 pt-3 border-t border-slate-200 space-y-2">
+                  <input type="text" id="cardNumberInput" placeholder="Card Number (e.g. 4532 •••• •••• 8892)" class="w-full text-xs px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:border-amber-500 focus:outline-none">
+                  <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="cardExpiryInput" placeholder="MM / YY" class="text-xs px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:border-amber-500 focus:outline-none">
+                    <input type="password" id="cardCvvInput" maxlength="4" placeholder="CVV" class="text-xs px-3.5 py-2 bg-white border border-slate-300 rounded-xl focus:border-amber-500 focus:outline-none">
+                  </div>
+                </div>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- Confirm CTA Button -->
+        <div class="pt-2">
+          <button 
+            type="button" 
+            id="confirmPaymentBtn" 
+            onclick="processOrderPayment()" 
+            class="btn-3d w-full py-3.5 text-sm font-black text-white bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-700/20 hover:opacity-95 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-lock"></i>
+            <span id="confirmPaymentBtnText">Place Order with Cash on Delivery</span>
+          </button>
+          <p class="text-center text-[10px] text-slate-400 mt-2 flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-rotate-left text-emerald-600"></i> 7-Day Hassle-Free Replacement Guarantee on all orders
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Step 2: Processing Animation Screen -->
+      <div id="paymentProcessingView" class="hidden p-8 sm:p-12 flex flex-col items-center justify-center text-center space-y-4">
+        <div class="w-16 h-16 rounded-3xl bg-indigo-600 text-white flex items-center justify-center text-2xl shadow-xl shadow-indigo-500/30 animate-bounce">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-lg font-black text-slate-900">Processing Payment Securely...</h3>
+          <p class="text-xs text-slate-500">Connecting to banking network and validating transaction token...</p>
+        </div>
+        <div class="w-48 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+          <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 w-full animate-pulse"></div>
+        </div>
+      </div>
+
+      <!-- Step 3: Order Placed Successfully Screen -->
+      <div id="paymentSuccessView" class="hidden p-6 sm:p-8 flex flex-col items-center justify-center text-center space-y-5">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-500 text-emerald-600 flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/20 animate-in zoom-in">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        
+        <div class="space-y-1.5 max-w-md">
+          <span class="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wider">Order Confirmed</span>
+          <h3 class="text-2xl font-black text-slate-900">Thank You for Your Order!</h3>
+          <p class="text-xs text-slate-600">Your order has been placed successfully and is being packed by our fulfillment center.</p>
+        </div>
+
+        <!-- Receipt Details Box -->
+        <div class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left text-xs space-y-2.5">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-slate-500 font-bold">Order ID:</span>
+            <span id="successOrderId" class="font-mono font-black text-indigo-700">ORD-892415</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-slate-500 font-bold">Payment Method:</span>
+            <span id="successPaymentMethod" class="font-bold text-slate-800">Cash on Delivery</span>
+          </div>
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="text-slate-500 font-bold">Estimated Delivery:</span>
+            <span id="successDeliveryDate" class="font-bold text-emerald-700">Thursday, 15 October (FREE Prime)</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 font-bold">Total Paid / Payable:</span>
+            <span id="successTotalAmount" class="font-black text-base text-slate-900">₹0</span>
+          </div>
+        </div>
+
+        <!-- Post-Order Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full pt-2">
+          <button 
+            type="button" 
+            onclick="viewDeliveriesAfterPayment()" 
+            class="btn-3d w-full sm:flex-1 py-3 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+          >
+            <i class="fa-solid fa-truck-fast"></i> Track Delivery Live
+          </button>
+          <button 
+            type="button" 
+            onclick="closePaymentModal()" 
+            class="w-full sm:flex-1 py-3 text-xs font-bold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+          >
+            Continue Shopping
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
 
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
