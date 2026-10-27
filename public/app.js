@@ -3187,6 +3187,35 @@ async function executeAgentQuery(prompt) {
   }
 }
 
+function formatAgentMarkdown(raw) {
+  if (!raw) return '';
+  let str = escapeHtml(raw);
+
+  // ### Header 3
+  str = str.replace(/^### (.*$)/gim, '<h4 class="font-bold text-xs text-indigo-950 mt-2 mb-1 flex items-center gap-1.5 pb-0.5 border-b border-indigo-100">$1</h4>');
+  // ## Header 2
+  str = str.replace(/^## (.*$)/gim, '<h3 class="font-black text-sm text-indigo-950 mt-2.5 mb-1.5">$1</h3>');
+
+  // Bold: **text**
+  str = str.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>');
+
+  // Italics: *text*
+  str = str.replace(/\*(.*?)\*/g, '<em class="italic text-slate-700">$1</em>');
+
+  // Inline code: `text`
+  str = str.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-indigo-600 font-mono text-[11px] font-bold border border-slate-200">$1</code>');
+
+  // Bullet lines: • or -
+  str = str.replace(/^[•\-]\s+(.*$)/gim, '<div class="flex items-start gap-1.5 text-xs text-slate-700 pl-1 my-0.5"><span class="text-indigo-500 font-bold shrink-0">•</span><span>$1</span></div>');
+
+  // Double newline to spacing
+  str = str.replace(/\n\n/g, '<div class="h-2"></div>');
+  // Single newline to <br>
+  str = str.replace(/\n/g, '<br>');
+
+  return str;
+}
+
 function renderAgentResponse(agentData) {
   const container = document.getElementById('agentMessagesContainer');
   if (!container) return;
@@ -3268,7 +3297,7 @@ function renderAgentResponse(agentData) {
         <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm space-y-3">
           ${thoughtTraceHtml}
           <div class="text-slate-800 leading-normal space-y-1">
-            ${reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+            ${formatAgentMarkdown(reply)}
           </div>
           ${productCardsHtml}
         </div>
@@ -3379,7 +3408,7 @@ function executeAgentAutonomousActions(actions) {
 // Client-side fallback if offline
 function renderAgentFallbackResponse(prompt) {
   const p = prompt.toLowerCase();
-  let fallbackReply = `I have received your goal: "${prompt}". You can explore our catalog, compare gadgets side-by-side, or use the quick action shortcuts below!`;
+  let fallbackReply = `### 💡 GadgetAgent AI Advisory\n\nI have received your goal: **"${prompt}"**.\n\nYou can explore our catalog, compare flagship gadgets side-by-side, or use the one-click quick action shortcuts below!`;
   let samplePicks = currentProducts.slice(0, 2);
 
   if (p.includes('compare') || p.includes('vs')) {
@@ -3400,13 +3429,19 @@ function renderAgentFallbackResponse(prompt) {
     }]);
     fallbackReply = `Added **${pick.name}** to your cart with VIP coupon **VIP2026** (15% OFF)!`;
     samplePicks = [pick];
+  } else if (p.includes('oled') || p.includes('display') || p.includes('screen')) {
+    fallbackReply = `### 🖥️ OLED vs LCD Technology\n\n• **OLED:** Individual self-lit pixels deliver true black (0 nits), infinite contrast, and instant pixel response.\n• **LCD:** Backlit panel, budget-friendly but blacks appear gray with limited contrast.\n\nCheck out the OLED laptops and smartphones in our inventory!`;
+  } else if (p.includes('ally') || p.includes('gta')) {
+    fallbackReply = `### 🎮 ASUS ROG Ally Gaming\n\n**Yes!** The ASUS ROG Ally Z1 Extreme runs full Windows 11 and plays **GTA V** smoothly at 1080p 75-90+ FPS on High settings!`;
+  } else if (p.includes('exchange') || p.includes('trade')) {
+    fallbackReply = `### 🔄 Device Exchange Program\n\nYou can trade in your old phone or laptop for **up to ₹30,050 instant discount**! Toggle 'With Exchange' on any product to view your valuation.`;
   }
 
   renderAgentResponse({
     reply: fallbackReply,
     thoughtProcess: [
       { step: 1, type: 'perceive', text: `Perceived: "${prompt}"` },
-      { step: 2, type: 'execute', text: 'Executing local autonomous agent dispatch...' }
+      { step: 2, type: 'execute', text: 'Local autonomous agent fallback dispatch...' }
     ],
     actions: [],
     recommendedProducts: samplePicks
